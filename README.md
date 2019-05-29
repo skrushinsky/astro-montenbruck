@@ -2,16 +2,17 @@
 
 
 Library of astronomical calculations, based on
-_"Astronomy On The Personal Computer"_ by _O.Montenbruck and T.Phleger,
+_"Astronomy On The Personal Computer"_ by _O.Montenbruck_ and _T.Phleger_,
 Fourth Edition, Springer-Verlag, 2000_.
 
-As the authors state, they have tried to obtain an accuracy that is approximately
-the same as that found in astronomical yearbooks.
-```
-  "The errors in the fundamental routines for determining the coordinates
-  of the Sun, the Moon, and the planets amount to about 1″-3″."
+As the book authors state, they have tried to obtain an accuracy that is
+approximately the same as that found in astronomical yearbooks.
 
-  -- Introduction to the 4-th edition, p.2.
+```
+"The errors in the fundamental routines for determining the coordinates
+of the Sun, the Moon, and the planets amount to about 1″-3″."
+
+-- Introduction to the 4-th edition, p.2.
 ```
 
 There are many astronomical libraries available in the public domain. While
@@ -33,7 +34,7 @@ between precision on the one hand and compact, well organized code on the other.
 
 ## Requirements
 
-* Perl >= 5.22
+* *Perl* >= 5.22
 
 Tested on Linux 64-bit and macOS 10.14. There should be no problems at other platforms.
 
@@ -80,24 +81,14 @@ extended over time.
 To display current planetary positions, type:
 
 ```
-$ perl/script/ephemeris.pl
+$ perl script/ephemeris.pl
 ```
 
 For list of available options. type:
 
 ```
-$ perl/script/ephemeris.pl -h
+$ perl script/ephemeris.pl -h
 ```
-
-## Acknowledgments
-
-There are three sources, which I used:
-
-- O.Montenbruck, T.Phleger, _"Astronomy On The Personal Computer"_,
-Fourth Edition, Springer-Verlag, 2000.
-- Peter Duffett-Smith, _"Astronomy With Your Personal Computer"_,
-Cambridge University Press, 1986.
-- Jean Meeus, _"Astronomical Algorithms"_, Willmann-Bell, Inc., 1991.
 
 
 ## License And Copyright

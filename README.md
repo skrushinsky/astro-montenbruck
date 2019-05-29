@@ -75,7 +75,7 @@ Documentation files will be installed to **docs/** directory.
 
 ## Usage
 
-**script/** directory contains examples of the library usage. They will be
+[script/](script/) directory contains examples of the library usage. They will be
 extended over time.
 
 To display current planetary positions, type:

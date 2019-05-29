@@ -173,13 +173,13 @@ for I<precession>, I<nutation>, I<aberration> and I<light-time>.
 
 =head2 Implementation details
 
-This module is implemented as a "factory". User may not need all the planets and
+This module is implemented as a "factory". User may not need all the planets
 at once, so each class is loaded lazily, by demand.
 
 =head2 Mean daily motion
 
-To calculate mean daily motion along with the celestial coordinates,
-use C<with_motion> option:
+To calculate mean daily motion along with the celestial coordinates, use
+C<with_motion> option:
 
   iterator( $t, \@PLANETS, with_motion => 1 );
   # Or:

@@ -23,7 +23,6 @@ my $builder = Module::Build->new(
     requires => {
         'Readonly'      => '2.05',
         'Memoize'       => '1.03',
-        'Class::Struct' => '0.00',
         #'Log::Log4perl' => '1.49',
         'DateTime'      => '1.44',
         'DateTime::Format::Strptime' => '1.76',

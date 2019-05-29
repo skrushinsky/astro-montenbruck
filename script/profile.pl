@@ -5,8 +5,8 @@
 use 5.22.0;
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
-use AstroScript::Ephemeris qw/apparent/;
-use AstroScript::Ephemeris::Planet qw/@PLANETS/;
+use Astro::Montenbruck::Ephemeris qw/apparent/;
+use Astro::Montenbruck::Ephemeris::Planet qw/@PLANETS/;
 
 my $t = -0.34913099854893875;
 # get iterator function

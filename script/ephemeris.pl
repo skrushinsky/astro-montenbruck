@@ -9,13 +9,13 @@ use Readonly;
 use DateTime;
 use DateTime::Format::Strptime;
 
-use AstroScript::Time qw/jd2te jd_cent/;
-use AstroScript::Ephemeris qw/planets/;
-use AstroScript::Ephemeris::Planet qw/@PLANETS/;
-use AstroScript::Helpers qw/dmsz_str dms_or_dec_str/;
+use Astro::Montenbruck::Time qw/jd2te jd_cent/;
+use Astro::Montenbruck::Ephemeris qw/iterator/;
+use Astro::Montenbruck::Ephemeris::Planet qw/@PLANETS/;
+use Astro::Montenbruck::Helpers qw/dmsz_str dms_or_dec_str/;
 use Math::Trig qw/rad2deg/;
-use AstroScript::CoCo qw/$EQU $ECL ecl2equ/;
-use AstroScript::Nutation qw/ecl_obl/;
+use Astro::Montenbruck::CoCo qw/$EQU $ECL ecl2equ/;
+use Astro::Montenbruck::Nutation qw/ecl_obl/;
 
 our $VERSION = '1.00';
 
@@ -143,11 +143,11 @@ my @hdrs =
 
 my $iter;
 if ($arg{m}) {
-    $iter = planets( $t, \@PLANETS, with_motion => 1 );
+    $iter = iterator( $t, \@PLANETS, with_motion => 1 );
     printf( "%-10s %-12s %-11s %-10s %-11s  \n", 'Name', @hdrs, 'Dist.', ' Motion' );
     print '-' x 56, "\n";
 } else {
-    $iter = planets( $t, \@PLANETS );
+    $iter = iterator( $t, \@PLANETS );
     printf( "%-10s %-12s %-11s %-10s\n", 'Name', @hdrs, 'Dist.' );
     print '-' x 43, "\n";
 }
@@ -181,7 +181,8 @@ while ( my $res = $iter->() ) {
         sign   => 1,
     );
     my $z_str = sprintf( '%07.4f', $pos->{z} );
-    my $name = $id eq $LN ? 'True Node' : $id;
+    #my $name = $id eq $LN ? 'True Node' : $id;
+    my $name = $id;
     if ($arg{m}) {
         my $m_str = $dms_or_ddd->(
             $pos->{motion},

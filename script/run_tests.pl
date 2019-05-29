@@ -9,5 +9,4 @@ use Test::Harness;
 
 my $root = "$Bin/../t";
 opendir (my $dh, $root) || die "cannot open directory: $!";
-my @tests = map {"$root/$_"} grep { -f "$root/$_" && /\.t$/ } readdir $dh;
-runtests @tests;
+runtests map {"$root/$_"} grep { -f "$root/$_" && /\.t$/ } readdir $dh;

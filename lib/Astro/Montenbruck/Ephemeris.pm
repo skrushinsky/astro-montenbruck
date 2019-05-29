@@ -38,7 +38,7 @@ sub _create_constructor {
 
 # shortcut for _create_constructor
 sub _construct {
-    _create_constructor(join('::', qw/AstroScript Ephemeris/, @_))
+    _create_constructor(join('::', qw/Astro Montenbruck Ephemeris/, @_))
 }
 
 

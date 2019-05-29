@@ -3,7 +3,7 @@
 
 Library of astronomical calculations, based on
 _"Astronomy On The Personal Computer"_ by _O.Montenbruck_ and _T.Phleger_,
-Fourth Edition, Springer-Verlag, 2000_.
+_Fourth Edition, Springer-Verlag, 2000_.
 
 As the book authors state, they have tried to obtain an accuracy that is
 approximately the same as that found in astronomical yearbooks.
@@ -26,11 +26,11 @@ between precision on the one hand and compact, well organized code on the other.
 
 ## Contents
 
-- [Astro::Montenbruck::MathUtils](lib/Astro::Montenbruck/MathUtils.pm) — Core mathematical routines.
-- [Astro::Montenbruck::Time](lib/Astro::Montenbruck/Time.pm) — Time-related routines.
-- [Astro::Montenbruck::Ephemeris](lib/Astro::Montenbruck/Ephemeris.pm) — Positions of celestial bodies.
-- [Astro::Montenbruck::CoCo](lib/Astro::Montenbruck/CoCo.pm) —  Coordinates conversions.
-- [Astro::Montenbruck::Nutation](lib/Astro::Montenbruck/Nutation.pm) —  Nutation and obliquity of ecliptic.
+- [Astro::Montenbruck::MathUtils](lib/Astro/Montenbruck/MathUtils.pm) — Core mathematical routines.
+- [Astro::Montenbruck::Time](lib/Astro/Montenbruck/Time.pm) — Time-related routines.
+- [Astro::Montenbruck::Ephemeris](lib/Astro/Montenbruck/Ephemeris.pm) — Positions of celestial bodies.
+- [Astro::Montenbruck::CoCo](lib/Astro/Montenbruck/CoCo.pm) —  Coordinates conversions.
+- [Astro::Montenbruck::Nutation](lib/Astro/Montenbruck/Nutation.pm) —  Nutation and obliquity of ecliptic.
 
 ## Requirements
 

@@ -9,10 +9,11 @@ use Readonly;
 use DateTime;
 use DateTime::Format::Strptime;
 
-use Astro::Montenbruck::Time qw/jd2te jd_cent jd2lst/;
+use Astro::Montenbruck::Time qw/jd_cent jd2lst $SEC_PER_CEN/;
+use Astro::Montenbruck::Time::DeltaT qw/delta_t/;
 use Astro::Montenbruck::Ephemeris qw/iterator/;
 use Astro::Montenbruck::Ephemeris::Planet qw/@PLANETS/;
-use Astro::Montenbruck::Helpers qw/dmsz_str dms_or_dec_str hms_str format_geo       parse_geocoords/;
+use Astro::Montenbruck::Helpers qw/dmsz_str dms_or_dec_str hms_str format_geo parse_geocoords/;
 use Math::Trig qw/rad2deg/;
 use Astro::Montenbruck::CoCo qw/:all/;
 use Astro::Montenbruck::Nutation qw/ecl_obl/;
@@ -143,19 +144,19 @@ printf( "%s\n\n", format_geo(@geo) );
 
 my $jd = $dt->jd;
 printf( "%-15s: %f\n", 'Julian Day', $jd );
-my ($t, $delta_t);
+my $t = jd_cent($jd);
+my $delta_t = 0;
 if ($use_delta_t) {
-    ($t, $delta_t) = jd2te($jd);
+    # Universal -> Dynamic Time
+    my $delta_t = delta_t($jd);
     printf("%-15s: %05.2f\n", 'Delta-T', $delta_t);
-} else {
-    $t = jd_cent($jd);
-    $delta_t = 0;
+    $t += $dt / $SEC_PER_CEN;
 }
-
+# Local Sidereal Time
 my $lst = jd2lst($jd, $geo[1]);
 
 printf("%-15s: %s\n\n", 'Sidereal Time', hms_str($lst));
-
+# Ecliptic obliquity
 my $obliq = rad2deg(ecl_obl($t));
 
 my @hdrs =

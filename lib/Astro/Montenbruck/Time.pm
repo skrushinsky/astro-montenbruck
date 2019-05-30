@@ -139,34 +139,21 @@ sub t1900 {
 }
 
 
-sub t2dt {
-    my $t2000 = shift;
-    my ( $dt, $valid ) = ( 0, 0 );
-    unless ( ( $t2000 < -1.75 ) or ( $t2000 > 0.05 ) ) {
-        $valid = 1;
-        my $i = int( floor( $t2000 / 0.25 ) );
-        my $t = $t2000 - $i * 0.25;
-        my @terms = @{ $DT_TERMS[ $i + 7 ] };
-        $dt = polynome( $t, @terms );
-    }
-    $dt, $valid
-}
-
 sub jd2dt {
     my $j = shift;
     t2dt( jd_cent($j) );
 }
 
 
-sub jd2te {
-    my $j = shift;
-    my ( $dt, $valid ) = jd2dt($j);
-    my $t = jd_cent($j);
-    if ($valid) {
-        $t += $dt / $SEC_PER_CEN;
-    }
-    $t, $dt;
-}
+# sub jd2te {
+#     my $j = shift;
+#     my ( $dt, $valid ) = jd2dt($j);
+#     my $t = jd_cent($j);
+#     if ($valid) {
+#         $t += $dt / $SEC_PER_CEN;
+#     }
+#     $t, $dt;
+# }
 
 
 sub jd2gst {
@@ -440,42 +427,6 @@ Given aI<Standard Julian date>, calculate time in centuries since epoch 2000.0.
 
 Given a I<Standard Julian date>, calculate time in centuries since epoch 2000.0.
 
-=head2 t2dt($t)
-
-Calculate I<Delta-T> in seconds — difference between I<UTC> and I<Ephemeris (Dynamic)time>.
-The approximation spans the years from 1825 to 2005
-
-=head3 Argument
-
-Time in centuries since epoch 2000.0
-
-=head3 Returns
-
-=over
-
-=item * Delta-T, in seconds, or zero if given time is out of range
-
-=item * flag: true if given time is in range and Delta-T was calculated.
-
-=back
-
-=head2 jd2dt($jd)
-
-Same as L<t2dt($t)>, but argument is Standard Julian date.
-
-=head2 jd2te($jd)
-
-Given Standard Julian date, calculate T-period corrected for Delta-T.
-
-=head3 Returns
-
-=over
-
-=item * Time in centuries since epoch 2000.0, in Ephemeris (Dynamic) time.
-
-=item * flag: true if given time is in range and Delta-T was calculated.
-
-=back
 
 =head2 jd2gst($jd)
 

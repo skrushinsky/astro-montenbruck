@@ -9,12 +9,12 @@ use Readonly;
 use DateTime;
 use DateTime::Format::Strptime;
 
-use Astro::Montenbruck::Time qw/jd2te jd_cent/;
+use Astro::Montenbruck::Time qw/jd2te jd_cent jd2lst/;
 use Astro::Montenbruck::Ephemeris qw/iterator/;
 use Astro::Montenbruck::Ephemeris::Planet qw/@PLANETS/;
-use Astro::Montenbruck::Helpers qw/dmsz_str dms_or_dec_str/;
+use Astro::Montenbruck::Helpers qw/dmsz_str dms_or_dec_str hms_str format_geo       parse_geocoords/;
 use Math::Trig qw/rad2deg/;
-use Astro::Montenbruck::CoCo qw/$EQU $ECL ecl2equ/;
+use Astro::Montenbruck::CoCo qw/:all/;
 use Astro::Montenbruck::Nutation qw/ecl_obl/;
 
 our $VERSION = '1.00';
@@ -27,13 +27,17 @@ perl ephemeris.pl [OPTIONS]
 
 Options:
 -t -- UTC date/time in format: YYYY-MM-DD HH:MM, current by default.
+-g -- Geographical coordinates, comma-separated latitude and longitude:
+      DD[N|S]MM, DDD[E|W]MM
+      N - North, S - South, W - West, E - East.
 -e -- Ephemeris/Dynamic time options:
       1 - calculate Delta-T correction (default)
       0 - do not calculate Delta-T
 -c -- coordinates type:
       E - ecliptic,
       Q - equatorial arc-degrees,
-      H - equatorial hours,
+      T - equatorial hours,
+      H - horizontal arc-degrees,
       Z - zodiac  (default)
 -f -- format of arc-degrees:
       S - sexadecimal (default)
@@ -46,12 +50,13 @@ Readonly our $COO_ECL_DEGREES   => 0;
 Readonly our $COO_ECL_ZODIAC    => 1;
 Readonly our $COO_EQU_DEGREES   => 2;
 Readonly our $COO_EQU_HOURS     => 3;
+Readonly our $COO_HRZ_DEGREES   => 4;
 Readonly::Array our @EQU_COORDS => ( $COO_EQU_DEGREES, $COO_EQU_HOURS );
 Readonly our $FMT_SEXADECIMAL   => 0;
 Readonly our $FMT_DECIMAL       => 1;
 
 my %arg;
-getopts( 'hmt:c:f:e:', \%arg );
+getopts( 'hmt:g:c:f:e:', \%arg );
 
 if ( $arg{h} ) {
     print USAGE;
@@ -67,8 +72,11 @@ given ( $arg{c} ) {
     when ('Q') {
         $coo = $COO_EQU_DEGREES
     }
-    when ('H') {
+    when ('T') {
         $coo = $COO_EQU_HOURS
+    }
+    when ('H') {
+        $coo = $COO_HRZ_DEGREES
     }
     when ('Z') {
         $coo = $COO_ECL_ZODIAC
@@ -88,6 +96,15 @@ my $dt = do {
     }
     else {
         DateTime->now();
+    }
+};
+
+my @geo = do {
+    if ($arg{g}) {
+        parse_geocoords(split /\s*,\s*/, $arg{g})
+    }
+    else {
+         (0, 0)
     }
 };
 
@@ -122,24 +139,30 @@ given ( $arg{e} ) {
 printf( "%s %s %s %s\n",
     $dt->ymd, $dt->christian_era, $dt->hms, $dt->time_zone_short_name );
 
+printf( "%s\n\n", format_geo(@geo) );
+
 my $jd = $dt->jd;
-printf( "Julian Day: %f\n", $jd );
+printf( "%-15s: %f\n", 'Julian Day', $jd );
 my ($t, $delta_t);
 if ($use_delta_t) {
     ($t, $delta_t) = jd2te($jd);
-    printf("Delta-T: %5.2f\n\n", $delta_t);
+    printf("%-15s: %05.2f\n", 'Delta-T', $delta_t);
 } else {
     $t = jd_cent($jd);
     $delta_t = 0;
-    print("\n");
 }
 
-my $obliq = ecl_obl($t);
+my $lst = jd2lst($jd, $geo[1]);
+
+printf("%-15s: %s\n\n", 'Sidereal Time', hms_str($lst));
+
+my $obliq = rad2deg(ecl_obl($t));
 
 my @hdrs =
     ( grep /^$coo$/, @EQU_COORDS )
   ? ( 'R.A.', ' Dcl.' )
-  : ( 'Lng.', ' Lat.' );
+  : $coo == $COO_HRZ_DEGREES ? ( 'Azm.', ' Alt.' )
+                             : ( 'Lng.', ' Lat.' );
 
 my $iter;
 if ($arg{m}) {
@@ -159,15 +182,20 @@ my $dms_or_ddd = sub {
 while ( my $res = $iter->() ) {
     my ( $id, $pos ) = @$res;
     my $x_str;
-    if ( grep /^$coo$/, @EQU_COORDS ) {
+    if ( grep /^$coo$/, (@EQU_COORDS, $COO_HRZ_DEGREES) ) {
+$DB::single = 1;
         ( $pos->{x}, $pos->{y} ) = ecl2equ( $pos->{x}, $pos->{y}, $obliq );
         if ( $coo == $COO_EQU_HOURS ) {
-            $x_str = $dms_or_ddd->( $pos->{x} / 15, places => 2 );
-        }
-        else {
+            $pos->{x} /= 15;
+            $x_str = $dms_or_ddd->( $pos->{x}, places => 2 );
+        } elsif ( $coo == $COO_EQU_DEGREES ) {
             $x_str = $dms_or_ddd->( $pos->{x} );
         }
-
+        elsif ( $coo == $COO_HRZ_DEGREES ) {
+            my $h = $lst * 15 - $pos->{x}; # hour angle, arc-degrees
+            ( $pos->{x}, $pos->{y} ) = equ2hor( $h, $pos->{y}, $geo[0]);
+            $x_str = $dms_or_ddd->( $pos->{x} );
+        }
     }
     elsif ( $coo == $COO_ECL_ZODIAC ) {
         $x_str = dmsz_str( $pos->{x}, decimal => $fmt == $FMT_DECIMAL );
@@ -193,12 +221,11 @@ while ( my $res = $iter->() ) {
     } else {
         printf( "%-10s %-12s %-11s %-10s\n", $name, $x_str, $y_str, $z_str );
     }
-
 }
 
 print "\n";
 my $o_str = dms_or_dec_str(
-    rad2deg($obliq),
+    $obliq,
     places  => 2,
     sign    => 1,
     decimal => $fmt == $FMT_DECIMAL

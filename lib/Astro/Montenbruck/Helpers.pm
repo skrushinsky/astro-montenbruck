@@ -5,6 +5,7 @@ use warnings;
 
 use Exporter qw/import/;
 
+
 our $VERSION = '1.00';
 
 use Readonly;
@@ -13,31 +14,31 @@ Readonly::Array our @ZODIAC =>
   qw/Aries Taurus Gemini Cancer Leo Virgin Libra Scorpio
   Sagittarius Capricorn Aquarius Pisces/;
 
-our @EXPORT_OK = qw/parse_geocoords  dmsz_str dms_or_dec_str
-  dmsdelta_str @ZODIAC/;
+our @EXPORT_OK = qw/parse_geocoords dmsz_str dms_or_dec_str
+  dmsdelta_str hms_str format_geo @ZODIAC/;
 
 use Astro::Montenbruck::MathUtils qw/dms zdms frac/;
 
 sub parse_geocoords {
-    my %arg = @_;
-    my ( $lon, $lat ) = ( 0, 0 );
-    if ( defined $arg{l} ) {
-        $arg{l} =~ /^(\d+)(E|W)(\d+)$/;
-        my $d = $1 or die 'Unexpected longitude degrees';
-        my $w = $2 or die 'Unexpected longitude direction';
-        my $m = $1 or die 'Unexpected longitude minutes';
-        $lon = $d + $m / 60;
-        $lon = -$lon if $w eq 'E';
-    }
-    if ( defined $arg{m} ) {
-        $arg{m} =~ /^(\d+)(S|N)(\d+)$/;
-        my $d = $1 or die 'Unexpected longitude degrees';
-        my $n = $2 or die 'Unexpected longitude direction';
-        my $m = $1 or die 'Unexpected longitude minutes';
+    my ( $lats, $lons ) = @_;
+    my ( $lat, $lon ) = (0, 0);
+    {
+        $lats =~ /^(\d+)(S|N)(\d+)$/i;
+        my $d = $1 or die 'Unexpected latitude degrees';
+        my $n = $2 or die 'Unexpected latitude direction';
+        my $m = $3 or die 'Unexpected latitude minutes';
         $lat = $d + $m / 60;
         $lat = -$lat if $n eq 'S';
     }
-    $lon, $lat;
+    {
+        $lons =~ /^(\d+)(E|W)(\d+)$/i;
+        my $d = $1 or die 'Unexpected longitude degrees';
+        my $w = $2 or die 'Unexpected longitude direction';
+        my $m = $3 or die 'Unexpected longitude minutes';
+        $lon = $d + $m / 60;
+        $lon = -$lon if $w eq 'E';
+    }
+    $lat, $lon;
 }
 
 sub dmsz_str {
@@ -92,6 +93,18 @@ sub latde_str {
     else {
         sprintf( '%s%02d:%02d:%02d', $y < 0 ? '-' : '+', dms($y) );
     }
+}
+
+sub format_geo {
+    my ($lat, $lon) = @_;
+    my $a = abs($lat);
+    my $b = abs($lon);
+    my @lat = dms($a, 2);
+    my $lats = sprintf('%02d%s%02d', $lat[0], ( $lat < 0 ? 'S' : 'N'), $lat[1] );
+    my @lon = dms($b, 2);
+    my $lons = sprintf('%03d%s%02d', $lon[0], ( $lon < 0 ? 'E' : 'W'), $lon[1] );
+
+    "$lats, $lons"
 }
 
 1;

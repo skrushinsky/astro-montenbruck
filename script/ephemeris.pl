@@ -183,7 +183,6 @@ while ( my $res = $iter->() ) {
     my ( $id, $pos ) = @$res;
     my $x_str;
     if ( grep /^$coo$/, (@EQU_COORDS, $COO_HRZ_DEGREES) ) {
-$DB::single = 1;
         ( $pos->{x}, $pos->{y} ) = ecl2equ( $pos->{x}, $pos->{y}, $obliq );
         if ( $coo == $COO_EQU_HOURS ) {
             $pos->{x} /= 15;

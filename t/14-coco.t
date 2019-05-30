@@ -7,25 +7,61 @@ our $VERSION = '1.00';
 
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
-use Test::Simple tests => 4;
-use Astro::Montenbruck::MathUtils qw/dms/;
+use Test::More;
+use Test::Number::Delta within => 1e-4;
 
-use Astro::Montenbruck::CoCo qw/ecl2equ equ2ecl/;
-
-{
-	# equator <-> ecliptic conversion
-	my $alpha = 116.328942;
-	my $delta = 28.026183;
-	my $epsilon = 23.4392911;
-
-	my ($lambda, $beta) = equ2ecl( $alpha, $delta, $epsilon);
-	my ($r1, $r2) = map { sprintf("%.5f", $_) } ($lambda, $beta);
-	ok($r1 eq '113.21563', 'equ2ecl: lambda');
-	ok($r2 eq '6.68417', 'equ2ecl: beta');
-
-    my ($alpha1, $delta1) = ecl2equ( $lambda, $beta, $epsilon);
-    my ($r3, $r4) = map { sprintf("%.6f", $_) } ($alpha1, $delta1);
-    ok($r3 eq '116.328942', 'ecl2equ: alpha');
-    ok($r4 eq '28.026183', 'ecl2equ: delta');
-
+BEGIN {
+	use_ok( 'Astro::Montenbruck::CoCo', qw/:all/  );
 }
+
+subtest 'Ecliptic <-> Equator' => sub {
+    plan tests => 2;
+
+	my $alpha   = 116.328942;
+	my $delta   = 28.026183;
+	my $epsilon = 23.4392911;
+    my $lambda  = 113.21563;
+    my $beta    = 6.68417;
+
+    subtest 'equ2ecl' => sub {
+        plan tests => 2;
+        my ($x, $y) = equ2ecl( $alpha, $delta, $epsilon);
+    	delta_ok($x, $lambda, 'lambda');
+    	delta_ok($y, $beta, 'beta');
+    };
+
+    subtest 'ecl2equ' => sub {
+        plan tests => 2;
+        my ($x, $y) = ecl2equ( $lambda, $beta, $epsilon);
+    	delta_ok($x, $alpha, 'alpha');
+    	delta_ok($y, $delta, 'delta');
+    };
+};
+
+subtest 'Equator <-> Horizon' => sub {
+    plan tests => 2;
+
+	my $delta  = 14.3986111111111;
+	my $h      = 8.62222222222222;
+    my $az     = 310.259333333333;
+    my $alt    = -10.9724444444444;
+    my $phi    = 51.25;
+
+    subtest 'equ2hor' => sub {
+        plan tests => 2;
+        my ($x, $y) = equ2hor( $h * 15, $delta, $phi);
+    	delta_ok($x, $az, 'azimuth');
+    	delta_ok($y, $alt, 'altitude');
+    };
+
+    subtest 'hor2equ' => sub {
+        plan tests => 2;
+        my ($x, $y) = hor2equ( $az, $alt, $phi);
+    	delta_ok($x / 15, $h, 'hour angle');
+    	delta_ok($y, $delta, 'delta');
+    };
+};
+
+
+
+done_testing();

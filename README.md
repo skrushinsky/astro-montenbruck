@@ -11,7 +11,7 @@ The present library is an attempt to find a middle-ground between precision on t
 
 ## Precision
 
-As the book authors state in Introduction to the 4-th edition, _"The errors in the fundamental routines for determining the coordinates of the Sun, the Moon, and the planets amount to about 1″-3″."_
+As the book authors state in Introduction to the 4-th edition, _"The errors in the fundamental routines for determining the coordinates of the Sun, the Moon, and the planets amount to about 1″-3″._
 
 ## Contents
 

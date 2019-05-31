@@ -18,8 +18,8 @@ As the book authors state in Introduction to the 4-th edition, _"The errors in t
 - [Astro::Montenbruck::MathUtils](lib/Astro/Montenbruck/MathUtils.pm) — Core mathematical routines.
 - [Astro::Montenbruck::Time](lib/Astro/Montenbruck/Time.pm) — Time-related routines.
 - [Astro::Montenbruck::Ephemeris](lib/Astro/Montenbruck/Ephemeris.pm) — Positions of celestial bodies.
-- [Astro::Montenbruck::CoCo](lib/Astro/Montenbruck/CoCo.pm) —  Coordinates conversions.
-- [Astro::Montenbruck::NutEqu](lib/Astro/Montenbruck/NutEqu.pm) —  Nutation and obliquity of ecliptic.
+- [Astro::Montenbruck::CoCo](lib/Astro/Montenbruck/CoCo.pm) — Coordinates conversions.
+- [Astro::Montenbruck::NutEqu](lib/Astro/Montenbruck/NutEqu.pm) — Nutation and obliquity of ecliptic.
 
 ## Requirements
 

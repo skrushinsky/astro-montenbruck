@@ -28,17 +28,6 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 use POSIX;
 use Astro::Montenbruck::MathUtils qw/polynome ddd frac to_range/;
 
-my @DT_TERMS = ( # terms for Delta-T
-    [ 10.4, -80.8, 413.9,  -572.3 ],           # 1825-
-    [ 6.6,  46.3,  -358.4, 18.8 ],             # 1850-
-    [ -3.9, -10.8, -166.2, 867.4 ],            # 1875-
-    [ -2.6, 114.1, 327.5,  -1467.4 ],          # 1900-
-    [ 24.2, -6.3,  -8.2,   483.4 ],            # 1925-
-    [ 29.3, 32.5,  -3.8,   550.7 ],            # 1950-
-    [ 45.3, 130.5, -570.5, 1516.7 ],           # 1975-
-    [ 0.25, 45.3,  130.5,  -570.5, 1516.7 ]    # 2000-2005
-);
-
 sub after_gregorian {
     my $y = shift;
     my $m = shift;

@@ -7,7 +7,7 @@ our $VERSION = '1.00';
 
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
-use Test::More tests => 10;
+use Test::More tests => 9;
 use Test::Number::Delta within => 1e-6;
 
 BEGIN {
@@ -164,39 +164,6 @@ subtest "JD <-> MJD" => sub {
             delta_ok($_->[1], $got, "MJD $_->[0]")
                 or diag("Expected: $_->[1], got: $got");
         }
-    }
-};
-
-subtest 'Delta-T' => sub {
-    plan tests => 6;
-    {
-        my $exp = 36.0078517568923;
-        my @got = t2dt(-.34913098714482);
-        delta_ok($exp, $got[0], "T2000 -> DeltaT")
-            or diag("Expected: $exp, got: $got[0]");
-    }
-    {
-        my $t = 1.99995893223819;
-        my @got = t2dt($t);
-        delta_ok(0, $got[0], "T out of range - deltaT value")
-            or diag("Expected: 0, got: $got[0]");
-        ok(!$got[1], "T out of range - valid flag")
-            or diag("Expected: false, got: $got[1]");
-    }
-    {
-        my $exp = 36.0078517568923;
-        my @got = jd2dt(2438792.99027778);
-        delta_ok($exp, $got[0], "JD -> DeltaT")
-            or diag("Expected: $exp, got: $got[0]");
-    }
-    {
-        my $jd = 2438792.99027778;
-        my  ($t, $delta) = jd2te($jd);
-        my @exp = (-0.34913098714482, 36.0078517568923);
-        delta_ok($exp[0], $t, "jd2te: T")
-            or diag("Expected: $exp[0], got: $t");
-        delta_ok($exp[1], $delta, "jd2te: Delta-T")
-            or diag("Expected: $exp[1], got: $delta");
     }
 };
 

@@ -3,11 +3,11 @@
 
 Library of astronomical calculations, based on _"Astronomy On The Personal Computer"_ by _O.Montenbruck_ and _T.Phleger_, _Fourth Edition, Springer-Verlag, 2000_.
 
-The main purpose of the library is to calculate positions of the Sun, the Moon, and the planets with precision that is approximately the same as that found in astronomical yearbooks. Other modules contain time-related routines, coordinates conversions, calculation of the ecliptic obliquity and nutation, etc. Over time, the range of utility functions will grow. 
+The main purpose of the library is to calculate positions of the Sun, the Moon, and the planets with precision that is approximately the same as that found in astronomical yearbooks. Other modules contain time-related routines, coordinates conversions, calculation of the ecliptic obliquity and nutation, etc. Over time, the range of utility functions will grow.
 
 Partially it overlaps some code which already exists in CPAN and elsewhere. For instance, there is a [Perl wrapper for Swiss Ephemeris](http://www.astrotexte.ch/sources/SwissEph.html). Swiss Ephemeris is fast and precise C library. Unfortunately, it lacks portability and convenient license. So, it is not easy for a layman to customize it for her custom application, be it an online lunar calendar, or tool for amateur sky observations.
 
-The present library is an attempt to find a middle-ground between precision on the one hand and compact, well organized code on the other. I tried to follow the best practices of modern Perl programming. 
+The present library is an attempt to find a middle-ground between precision on the one hand and compact, well organized code on the other. I tried to follow the best practices of modern Perl programming.
 
 ## Precision
 
@@ -19,7 +19,7 @@ As the book authors state in Introduction to the 4-th edition, _"The errors in t
 - [Astro::Montenbruck::Time](lib/Astro/Montenbruck/Time.pm) — Time-related routines.
 - [Astro::Montenbruck::Ephemeris](lib/Astro/Montenbruck/Ephemeris.pm) — Positions of celestial bodies.
 - [Astro::Montenbruck::CoCo](lib/Astro/Montenbruck/CoCo.pm) —  Coordinates conversions.
-- [Astro::Montenbruck::Nutation](lib/Astro/Montenbruck/Nutation.pm) —  Nutation and obliquity of ecliptic.
+- [Astro::Montenbruck::NutEqu](lib/Astro/Montenbruck/NutEqu.pm) —  Nutation and obliquity of ecliptic.
 
 ## Requirements
 
@@ -27,7 +27,7 @@ As the book authors state in Introduction to the 4-th edition, _"The errors in t
 
 Tested on Linux 64-bit and macOS 10.14. There should be no problems at other platforms, as the code is pure Perl.
 
-Perl dependencies are minimal, most of the external modules are part of the standard distribution. 
+Perl dependencies are minimal, most of the external modules are part of the standard distribution.
 [DateTime](https://metacpan.org/pod/DateTime) is not really required. It is used only in example scripts and tests, not the library itself.
 
 ## Installation

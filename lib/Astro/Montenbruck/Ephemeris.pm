@@ -21,6 +21,7 @@ our $VERSION = '1.10';
 use Math::Trig qw/deg2rad/;
 use List::Util qw/any/;
 use Astro::Montenbruck::Ephemeris::Planet qw/:ids/;
+use Astro::Montenbruck::NutEqu qw/mean2true/;
 use Astro::Montenbruck::MathUtils qw/diff_angle/;
 
 Readonly our $DAY_IN_CENT => 1 / 36525;
@@ -51,6 +52,7 @@ sub _iterator {
     my %arg = @_;
     my $sun_pos;
     my $sun_lbr;
+    my $nut_func;
 
     # Return position of the Sun, that are calculated only once.
     my $get_sun_pos = sub {
@@ -70,6 +72,12 @@ sub _iterator {
         $sun_lbr;
     };
 
+    # function for mean2trueing mean geocentric coordinates to true
+    my $get_nut_func = sub {
+        $nut_func = mean2true($t) unless defined $nut_func;
+        $nut_func
+    };
+
     # Calculate required position. Sun's coordinates are calculated only once.
     my $get_position = sub {
         my $id = shift;
@@ -81,7 +89,9 @@ sub _iterator {
                 return _construct('Planet', $id)->()->position($t)
             }
             default {
-                return _construct('Planet', $id)->()->position($t,  $get_sun_lbr->())
+                return _construct('Planet', $id)->()->position(
+                    $t,  $get_sun_lbr->(), $get_nut_func->()
+                )
             }
         }
     };

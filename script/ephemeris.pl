@@ -16,7 +16,8 @@ use Astro::Montenbruck::Ephemeris::Planet qw/@PLANETS/;
 use Astro::Montenbruck::Helpers qw/dmsz_str dms_or_dec_str hms_str format_geo parse_geocoords/;
 use Math::Trig qw/rad2deg/;
 use Astro::Montenbruck::CoCo qw/:all/;
-use Astro::Montenbruck::Nutation qw/ecl_obl/;
+#use Astro::Montenbruck::Nutation qw/ecl_obl/;
+use Astro::Montenbruck::NutEqu qw/obliquity/;
 
 our $VERSION = '1.00';
 
@@ -148,16 +149,16 @@ my $t = jd_cent($jd);
 my $delta_t = 0;
 if ($use_delta_t) {
     # Universal -> Dynamic Time
-    my $delta_t = delta_t($jd);
+    $delta_t = delta_t($jd);
     printf("%-15s: %05.2f\n", 'Delta-T', $delta_t);
-    $t += $dt / $SEC_PER_CEN;
+    $t += $delta_t / $SEC_PER_CEN;
 }
 # Local Sidereal Time
 my $lst = jd2lst($jd, $geo[1]);
 
 printf("%-15s: %s\n\n", 'Sidereal Time', hms_str($lst));
 # Ecliptic obliquity
-my $obliq = rad2deg(ecl_obl($t));
+my $obliq = obliquity($t);
 
 my @hdrs =
     ( grep /^$coo$/, @EQU_COORDS )

@@ -6,7 +6,7 @@ use Readonly;
 use Exporter qw/import/;
 use Astro::Montenbruck::MathUtils qw/reduce_deg/;
 use Astro::Montenbruck::Time qw/jd_cent/;
-use Astro::Montenbruck::Nutation qw/nut_lon ecl_obl/;
+use Astro::Montenbruck::NutEqu qw/deltas obliquity/;
 
 our @EXPORT = qw/ramc/;
 
@@ -20,8 +20,10 @@ sub ramc {
     my ( $jd, $lambda ) = @_;
     my $t = jd_cent($jd);
 
+    my ($dpsi) = deltas($t);
+
     # Correction for apparent S.T.
-    my $corr = nut_lon($t) * cos( ecl_obl($t) ) / 3600;
+    my $corr = $dpsi * cos( obliquity($t) ) / 3600;
 
     # Mean Local S.T.
     my $result =

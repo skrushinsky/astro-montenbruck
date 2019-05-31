@@ -4,7 +4,7 @@ use warnings;
 
 use Readonly;
 use Math::Trig qw/:pi rad2deg/;
-use Astro::Montenbruck::MathUtils qw/frac ARCS spherical rectangular/;
+use Astro::Montenbruck::MathUtils qw/frac spherical rectangular/;
 
 our $VERSION = '1.00';
 
@@ -22,50 +22,17 @@ Readonly our $PL => 'Pluto';
 Readonly::Array our @PLANETS =>
   ( $MO, $SU, $ME, $VE, $MA, $JU, $SA, $UR, $NE, $PL );
 
-
 use Exporter qw/import/;
 
 our %EXPORT_TAGS = ( ids => [qw/$MO $SU $ME $VE $MA $JU $SA $UR $NE $PL/], );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'ids'} }, '@PLANETS' );
 
-
 sub new {
     my ( $class, %arg ) = @_;
     bless { _id => $arg{id}, }, $class;
 }
 
-# Transformation of mean to true coordinates including
-# terms >0.1" according to IAU 1980.
-sub _nutequ {
-    my ( $t, $x, $y, $z ) = @_;
-    my $ls = pi2 * frac( 0.993133 + 99.997306 * $t );    # mean anomaly Sun
-    my $d =
-      pi2 * frac( 0.827362 + 1236.853087 * $t );    # diff. longitude Moon-Sun
-    my $f =
-      pi2 * frac( 0.259089 + 1342.227826 * $t );    # mean argument of latitude
-    my $n = pi2 * frac( 0.347346 - 5.372447 * $t ); # longit. ascending node
-    my $eps = 0.4090928 - 2.2696E-4 * $t;           # obliquity of the ecliptic
-    my $dpsi =
-      ( -17.200 * sin($n) -
-          1.319 * sin( 2 * ( $f - $d + $n ) ) -
-          0.227 * sin( 2 * ( $f + $n ) ) +
-          0.206 * sin( 2 * $n ) +
-          0.143 * sin($ls) ) /
-      ARCS;
-    my $deps =
-      ( +9.203 * cos($n) +
-          0.574 * cos( 2 * ( $f - $d + $n ) ) +
-          0.098 * cos( 2 * ( $f + $n ) ) -
-          0.090 * cos( 2 * $n ) ) /
-      ARCS;
-    my $c  = $dpsi * cos($eps);
-    my $s  = $dpsi * sin($eps);
-    my $dx = -( $c * $y + $s * $z );
-    my $dy = ( $c * $x - $deps * $z );
-    my $dz = ( $s * $x + $deps * $y );
-    $x + $dx, $y + $dy, $z + $dz;
-}
 
 sub _posvel {
     my ( $self, $l, $b, $r, $dl, $db, $dr ) = @_;
@@ -116,18 +83,17 @@ sub _geocentric {
 
     { l => $xp, b => $yp, r => $zp }, # ecliptic heliocentric coordinates of the planet
     { x => $xs, y => $ys, z => $zs }, # ecliptic geocentric coordinates of the Sun
-    { x => $x,  y => $y,  z => $z }   # ecliptic geoocentric coordinates of the planet
+    { x => $x,  y => $y,  z => $z  }  # ecliptic geocentric coordinates of the planet
 }
 
-
 sub position {
-    my ( $self, $t, $sun ) = @_;
+    my ( $self, $t, $sun, $nut_func ) = @_;
     my ( $l, $b, $r ) = $self->heliocentric($t);
 
     # geocentric ecliptic coordinates (light-time corrected)
     my ( $ph_ref, $sg_ref, $pg_ref ) =
-        $self->_geocentric( $t, { l => $l, b => $b, r => $r }, $sun );
-    my ( $x, $y, $z ) = _nutequ( $t, map { $pg_ref->{$_} } qw/x y z/ );
+      $self->_geocentric( $t, { l => $l, b => $b, r => $r }, $sun );
+    my ( $x, $y, $z ) = $nut_func->( map{ $pg_ref->{$_} } qw/x y z/);
 
     # heliocentric ecliptic (geometric)
     my ( $hx, $hy, $hz ) =
@@ -135,14 +101,14 @@ sub position {
 
     # spherical coordinates: delta (au), latitude and longitude (radians)
     my ( $gz, $gy, $gx ) = spherical( $x, $y, $z );
+
     # convert to degrees
-    { x => rad2deg($gx), y => rad2deg($gy), z => $gz }
+    { x => rad2deg($gx), y => rad2deg($gy), z => $gz };
 }
 
 sub heliocentric {
-    die "Must be overriden by a descendant"
+    die "Must be overriden by a descendant";
 }
-
 
 1;
 __END__

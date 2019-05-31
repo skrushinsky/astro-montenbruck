@@ -269,7 +269,7 @@ __END__
 
 =head1 NAME
 
-Astro::Montenbruck::Time::DeltaT - Sidereal time related calculations.
+Astro::Montenbruck::Time::DeltaT - difference between I<UT> and I<TDT>.
 
 =head1 VERSION
 

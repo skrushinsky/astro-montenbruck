@@ -73,7 +73,7 @@ Astro::Montenbruck::Ephemeris::Planet - Base class for a planet.
 =head1 SYNOPSIS
 
  # given mean geocentric coordinates ,$x0, $y0, $z0,
- # mean2true them to apparent coordinates $x1, $y1, $z1
+ # transform them to apparent coordinates $x1, $y1, $z1
  my $func = nutequ( $t );
  ($x1, $y1, $z1) = $func->($x0, $y0, $z0); # true coordinates
 
@@ -112,13 +112,13 @@ Returns function for transforming of mean to true coordinates.
 
 =head3 Returns
 
-Function which takes i<mean> ecliptic geocentric coordinates of the planet X, Y, Z
-of a planet and returns i<true> coordinates, i.e. corrected for
+Function which takes I<mean> ecliptic geocentric coordinates of the planet X, Y, Z
+of a planet and returns I<true> coordinates, i.e. corrected for
 L<nutation in ecliptic and obliquity>.
 
 =head2 obliquity( $t )
 
-Given time in Julian centuries since J200, return mean obliquity of the ecliptic,
+Given time in Julian centuries since J200, return I<mean obliquity of the ecliptic>,
 in arc-degrees.
 
 =head1 AUTHOR

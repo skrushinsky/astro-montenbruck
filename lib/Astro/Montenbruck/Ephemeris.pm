@@ -1,8 +1,10 @@
 
 package Astro::Montenbruck::Ephemeris;
 
+use 5.22.0;
 use strict;
 use warnings;
+no warnings qw/experimental/;
 use Readonly;
 use Module::Load;
 use Memoize;
@@ -47,36 +49,50 @@ sub _iterator {
     my $ids_ref = shift;
     my @items = @{$ids_ref};
     my %arg = @_;
-    my $sun;
-    my %sun_lbr;
+    my $sun_pos;
+    my $sun_lbr;
 
-    return sub {
+    # Return position of the Sun, that are calculated only once.
+    my $get_sun_pos = sub {
+        $sun_pos = _construct('Planet', $SU)->()->position($t)
+            unless defined $sun_pos;
+        $sun_pos;
+    };
+
+    # Return l, b, r of the Sun, l and b in radians.
+    my $get_sun_lbr = sub {
+        my $pos = $get_sun_pos->();
+        $sun_lbr = {
+            l => deg2rad($pos->{x}),
+            b => deg2rad($pos->{y}),
+            r => $pos->{z}
+        } unless defined $sun_lbr;
+        $sun_lbr;
+    };
+
+    # Calculate required position. Sun's coordinates are calculated only once.
+    my $get_position = sub {
+        my $id = shift;
+        given ($id) {
+            when ($SU) {
+                return $get_sun_pos->()
+            }
+            when ($MO) {
+                return _construct('Planet', $id)->()->position($t)
+            }
+            default {
+                return _construct('Planet', $id)->()->position($t,  $get_sun_lbr->())
+            }
+        }
+    };
+
+    sub {
     NEXT:
         return unless @items;  # no more items, stop iteration
-
         my $id = shift @items;
-        my $pos;
-        unless ($sun) {
-            $sun = _construct('Planet', $SU)->()->position($t);
-            %sun_lbr = (
-                l => deg2rad($sun->{x}),
-                b => deg2rad($sun->{y}),
-                r => $sun->{z}
-            );
-        }
-        if ( $id eq $SU ) {
-            $pos = $sun;
-        }
-        else {
-            if ($id eq $PL ) {
-                if ($t < -1.1 || $t > 1.0) {
-                    goto NEXT;
-                }
-            }
-            $pos = _construct('Planet', $id)->()->position( $t, \%sun_lbr );
-        }
-        [ $id, $pos ];
-    };
+        goto NEXT if $id eq $PL && ($t < -1.1 || $t > 1.0);
+        [ $id, $get_position->($id) ]
+    }
 }
 
 
@@ -88,6 +104,7 @@ sub iterator {
     my $iter_1 = _iterator($t, $ids_ref, %arg);
     return $iter_1 unless $arg{with_motion};
 
+    # to calculate mean daily motion, we need another iterator, for the next day
     my $iter_2 = _iterator($t + $DAY_IN_CENT, $ids_ref, %arg);
 
     return sub {
@@ -131,7 +148,7 @@ Astro::Montenbruck::Ephemeris - calculate planetary positions.
 
   my $jd = 2458630.5; # Standard Julian date for May 27, 2019, 00:00 UTC.
   my $t  = ($jd - 2451545) / 36525; # Convert Julian date to centuries since epoch 2000.0
-                                    # for better accuracy, convert $t to Ephemeris (Dynamic).
+                                    # for better accuracy, convert $t to Ephemeris (Dynamic) time.
   my $iter = iterator( $t, \@PLANETS ); # get iterator function for Sun. Moon and the planets.
 
   while ( my $result = $iter->() ) {

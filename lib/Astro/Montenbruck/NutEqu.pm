@@ -33,8 +33,6 @@ sub deltas {
     $dpsi, $deps
 }
 
-# mean2trueation of mean to true coordinates including
-# terms >0.1" according to IAU 1980.
 sub mean2true {
     my $t = shift;
     my ($dpsi, $deps) = deltas($t);
@@ -87,10 +85,24 @@ method.
 
 =head1 SUBROUTINES
 
+=head2 deltas( $t )
+
+Given time in Julian centuries since J200, return delta-psi and delta-eps.
+
+=head3 Arguments
+
+=over
+
+=item * B<$t> — time in Julian centuries since J2000: C<(JD-2451545.0)/36525.0>
+
+=head3 Returns
+
+C<($delta_psi, $delta_eps)>, in arc-degrees.
+
+
 =head2 mean2true( $t )
 
-Returns function for mean2trueation of mean to
-true coordinates.
+Returns function for transforming of mean to true coordinates.
 
 =head3 Arguments
 
@@ -103,6 +115,11 @@ true coordinates.
 Function which takes i<mean> ecliptic geocentric coordinates of the planet X, Y, Z
 of a planet and returns i<true> coordinates, i.e. corrected for
 L<nutation in ecliptic and obliquity>.
+
+=head2 obliquity( $t )
+
+Given time in Julian centuries since J200, return mean obliquity of the ecliptic,
+in arc-degrees.
 
 =head1 AUTHOR
 

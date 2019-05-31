@@ -139,23 +139,6 @@ sub t1900 {
 }
 
 
-sub jd2dt {
-    my $j = shift;
-    t2dt( jd_cent($j) );
-}
-
-
-# sub jd2te {
-#     my $j = shift;
-#     my ( $dt, $valid ) = jd2dt($j);
-#     my $t = jd_cent($j);
-#     if ($valid) {
-#         $t += $dt / $SEC_PER_CEN;
-#     }
-#     $t, $dt;
-# }
-
-
 sub jd2gst {
     my $jh = shift;
     my $j0 = jd0($jh);
@@ -282,7 +265,6 @@ L<https://en.wikipedia.org/wiki/Gregorian_calendar#Adoption_of_the_Gregorian_Cal
 
 =item * L</t1900($jd)>
 
-=item * L</t2dt($t)>
 
 =item * L</jd2dt($jd)>
 

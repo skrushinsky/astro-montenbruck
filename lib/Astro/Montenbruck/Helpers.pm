@@ -226,6 +226,24 @@ Format time value B<$h>.
 
 =back
 
+=head2 format_geo( $lat, $lon)
+
+Format geographical latitude and longitude.
+
+=head3 Arguments
+
+=over
+
+=item * $lat — latitude, degrees, positive northward
+
+=item * $lat — longitude, degrees, positive westward
+
+=back
+
+=head3 Return
+
+A string C<DD[N|S]MM, DDD[W|E]MM>. For instance, latitude B<55.75> and longitude
+B<-37.58> will be formatted to C<55N45, 037E35>.
 
 
 =head1 SUPPORT

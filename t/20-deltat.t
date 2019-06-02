@@ -29,9 +29,6 @@ for (@cases) {
     my $jd = $djd + 2415020;
     my $got = delta_t($jd);
     delta_ok($got, $exp, $msg);  
-    # it(`${c[2]} - DJD ${c[0]} should be ${c[1]}`, () => {
-    #     assert.approximately(timeutils.deltaT(c[0]), c[1], 1e-2);
-    # });
 }
 
 done_testing();

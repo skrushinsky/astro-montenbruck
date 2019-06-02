@@ -42,7 +42,6 @@ sub mean2true {
 
     sub {
         my ($x, $y, $z) = @_;
-
         my $dx = -( $c * $y + $s * $z );
         my $dy =  ( $c * $x - $deps * $z );
         my $dz =  ( $s * $x + $deps * $y );
@@ -53,7 +52,7 @@ sub mean2true {
 
 sub obliquity {
     my $t = shift;
-    23.43929111 - (46.8150 + (0.00059 - 0.001813 * $t) * $t) * $t / 3600
+    23.43929111 - (46.815 + (0.00059 - 0.001813 * $t) * $t) * $t / 3600
 }
 
 
@@ -72,7 +71,7 @@ Astro::Montenbruck::Ephemeris::Planet - Base class for a planet.
 
 =head1 SYNOPSIS
 
- # given mean geocentric coordinates ,$x0, $y0, $z0,
+ # given mean geocentric coordinates $x0, $y0, $z0,
  # transform them to apparent coordinates $x1, $y1, $z1
  my $func = nutequ( $t );
  ($x1, $y1, $z1) = $func->($x0, $y0, $z0); # true coordinates
@@ -87,6 +86,8 @@ method.
 
 =head2 deltas( $t )
 
+Calculates the effects of nutation on the ecliptic longitude and on the
+obliquity of the ecliptic with accuracy of about 1 arcsecond.
 Given time in Julian centuries since J200, return delta-psi and delta-eps.
 
 =head3 Arguments

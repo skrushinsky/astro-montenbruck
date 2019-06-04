@@ -6,6 +6,8 @@ use FindBin qw/$Bin/;
 use Pod::Simple::HTMLBatch;
 use Pod::Simple::XHTML;
 
+our $VERSION = 0.01;
+
 my $docs_dir = "$Bin/../docs";
 unless (-e $docs_dir) {
     mkdir $docs_dir or die "could not create directory: $!";

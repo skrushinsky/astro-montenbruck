@@ -24,12 +24,14 @@ lib/Astro/Montenbruck/Time/DeltaT.pm
 lib/Astro/Montenbruck/Time/Sidereal.pm
 LICENSE
 MANIFEST			This list of files
+META.json
+META.yml
 README
 README.md
 script/createdocs.pl
 script/ephemeris.pl
-script/run_tests.pl
 script/simple_ephem.pl
+script/test_all.pl
 script/usecase.pl
 t/00-load.t
 t/05-manifest.t
@@ -44,5 +46,3 @@ t/25-nutequ.t
 t/40-helpers.t
 t/pod-coverage.t
 t/pod.t
-META.yml
-META.json

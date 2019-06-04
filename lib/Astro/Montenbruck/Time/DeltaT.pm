@@ -10,7 +10,7 @@ use Astro::Montenbruck::Time qw/cal2jd jd2cal/;
 use Astro::Montenbruck::MathUtils qw/polynome/;
 
 our @EXPORT_OK = qw/delta_t/;
-our $VERSION = '1.00';
+our $VERSION = 0.01;
 
 Readonly::Hash our %HISTORICAL => (
     # From J.Meeus, Astronomical Algorithms, 2 edition

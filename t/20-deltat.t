@@ -4,7 +4,7 @@
 use strict;
 use warnings;
 
-our $VERSION = '1.00';
+our $VERSION = 0.01;
 
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";

@@ -6,7 +6,7 @@ use warnings;
 use Exporter qw/import/;
 
 
-our $VERSION = '1.00';
+our $VERSION = 0.01;
 
 use Readonly;
 

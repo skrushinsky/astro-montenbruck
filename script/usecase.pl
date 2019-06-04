@@ -7,7 +7,7 @@ use warnings;
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
 
-our $VERSION = '1.00';
+our $VERSION = 0.01;
 
 use DateTime;
 use Astro::Montenbruck::Ephemeris qw/iterator/;

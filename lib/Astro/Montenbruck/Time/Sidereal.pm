@@ -10,7 +10,7 @@ use Astro::Montenbruck::NutEqu qw/deltas obliquity/;
 
 our @EXPORT = qw/ramc/;
 
-our $VERSION = '1.00';
+our $VERSION = 0.01;
 
 
 Readonly::Scalar our $SOLAR_TO_SIDEREAL => 1.002737909350795;

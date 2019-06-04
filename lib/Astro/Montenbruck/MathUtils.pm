@@ -22,7 +22,7 @@ our %EXPORT_TAGS = (
     ],
 );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
-our $VERSION = '1.00';
+our $VERSION = 0.01;
 
 sub frac($x) { ( modf($x) )[0] }
 

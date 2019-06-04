@@ -5,6 +5,8 @@ use warnings;
 use FindBin qw/$Bin/;
 use lib ("$Bin/../lib");
 
+our $VERSION = 0.01;
+
 use Astro::Montenbruck::Ephemeris::Planet qw/@PLANETS/;
 use Astro::Montenbruck::Ephemeris qw/find_positions/;
 

@@ -5,7 +5,7 @@ use warnings;
 use Exporter qw/import/;
 our @EXPORT_OK = qw(pert addthe);
 
-our $VERSION = '1.00';
+our $VERSION = 0.01;
 
 use constant O => 16;
 use constant {

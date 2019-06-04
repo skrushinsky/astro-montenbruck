@@ -19,7 +19,7 @@ use Astro::Montenbruck::CoCo qw/:all/;
 #use Astro::Montenbruck::Nutation qw/ecl_obl/;
 use Astro::Montenbruck::NutEqu qw/obliquity/;
 
-our $VERSION = '1.00';
+our $VERSION = 0.01;
 
 use constant USAGE => <<USAGE;
 Compute planetary positions.

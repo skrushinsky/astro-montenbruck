@@ -8,7 +8,7 @@ use Math::Trig qw/:pi/;
 use Astro::Montenbruck::MathUtils qw/frac ARCS polynome/;
 
 our @EXPORT_OK = qw/mean2true obliquity deltas/;
-our $VERSION = '1.00';
+our $VERSION = 0.01;
 
 sub deltas {
     my $t    = shift;

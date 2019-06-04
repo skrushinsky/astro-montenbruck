@@ -6,7 +6,7 @@ use Readonly;
 use Math::Trig qw/:pi rad2deg/;
 use Astro::Montenbruck::MathUtils qw/frac spherical rectangular/;
 
-our $VERSION = '1.00';
+our $VERSION = 0.01;
 
 Readonly our $MO => 'Moon';
 Readonly our $SU => 'Sun';

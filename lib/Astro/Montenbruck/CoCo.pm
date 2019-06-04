@@ -17,7 +17,7 @@ our %EXPORT_TAGS = (
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} }, qw/$ECL $EQU/ );
 
-our $VERSION = '1.10';
+our $VERSION = 0.01;
 
 # Common routine for coordinate conversion
 # $target = $ECL (1) for equator -> ecliptic

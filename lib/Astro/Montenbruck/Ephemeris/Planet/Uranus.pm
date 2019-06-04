@@ -8,7 +8,7 @@ use Astro::Montenbruck::Ephemeris::Pert qw /pert/;
 use Astro::Montenbruck::MathUtils qw /frac ARCS/;
 use Astro::Montenbruck::Ephemeris::Planet qw/$UR/;
 
-our $VERSION = '1.00';
+our $VERSION = 0.01;
 
 sub new {
     my $class = shift;

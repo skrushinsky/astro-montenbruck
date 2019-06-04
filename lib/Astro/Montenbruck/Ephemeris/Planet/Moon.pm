@@ -10,7 +10,7 @@ use Astro::Montenbruck::Ephemeris::Planet qw/$MO/;
 use Astro::Montenbruck::MathUtils qw /frac sine ARCS reduce_deg/;
 use Astro::Montenbruck::Ephemeris::Pert qw /addthe/;
 
-our $VERSION = '1.00';
+our $VERSION = 0.01;
 
 sub new {
     my $class = shift;

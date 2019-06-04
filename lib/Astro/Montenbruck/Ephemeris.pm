@@ -16,7 +16,7 @@ our %EXPORT_TAGS = (
     all  => [ qw/iterator find_positions/ ],
 );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} }, );
-our $VERSION = '1.10';
+our $VERSION = 0.01;
 
 use Math::Trig qw/deg2rad/;
 use List::Util qw/any/;

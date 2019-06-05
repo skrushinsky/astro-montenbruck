@@ -17,7 +17,7 @@ our %EXPORT_TAGS = (
     all => [
         qw/frac frac360 dms hms zdms ddd polynome sine
           reduce_deg reduce_rad to_range opposite_deg opposite_rad
-          angle_s angle_c angle_c_rad diff_angle spherical rectangular
+          angle_s angle_c angle_c_rad diff_angle polar cart
           ARCS/
     ],
 );
@@ -113,13 +113,13 @@ sub diff_angle($a, $b, $mode = 'degrees') {
 }
 
 
-sub rectangular( $r, $theta, $phi ) {
+sub cart( $r, $theta, $phi ) {
     my $rcst = $r * cos($theta);
     $rcst * cos($phi), $rcst * sin($phi), $r * sin($theta);
 }
 
 # in previous versions was named 'polar'
-sub spherical ( $x, $y, $z ) {
+sub polar ( $x, $y, $z ) {
     my $rho = $x * $x + $y * $y;
     my $r   = sqrt( $rho + $z * $z );
     my $phi = atan2( $y, $x );
@@ -194,9 +194,9 @@ Version 0.01
 
 =item * L</diff_angle($a, $b, $mode='degrees')>
 
-=item * L</rectangular($r, $theta, $phi)>
+=item * L</cart($r, $theta, $phi)>
 
-=item * L</spherical($x, $y, $z)>
+=item * L</polar($x, $y, $z)>
 
 =back
 
@@ -427,19 +427,19 @@ I<359 degress... 0 degrees... 1 degree...> etc.
 
 Calculate sin(phi); phi in units of 1 revolution = 360 degrees
 
-=head2 rectangular($r, $theta, $phi)
+=head2 cart($r, $theta, $phi)
 
-Conversion of spherical coordinates (r,theta,phi) into rectangular (x,y,z).
+Conversion of polar coordinates (r,theta,phi) into certesian (x,y,z).
 
 =head3 Arguments
 
 =over
 
-=item * $r, distance from the origin;
+=item * B<$r>, distance from the origin;
 
-=item * $theta (in radians) corresponding to [-90 deg, +90 deg];
+=item * B<$theta> (in radians) corresponding to [-90 deg, +90 deg];
 
-=item * phi (in radians) corresponding to [-360 deg, +360 deg])
+=item * B<$phi> (in radians) corresponding to [-360 deg, +360 deg])
 
 =back
 
@@ -449,27 +449,28 @@ Rectangular coordinates:
 
 =over
 
-=item * $x
+=item * B<$x>, X
 
-=item * $y
+=item * B<$y>, Y
 
-=item * $z
+=item * B<$z>, Z
+
 
 =back
 
-=head2 spherical($x, $y, $z)
+=head2 polar($x, $y, $z)
 
-Conversion of rectangular coordinates (x,y,z) into spherical (r,theta,phi).
+Conversion of cartesian coordinates (x,y,z) into polar (r,theta,phi).
 
 =head3 Arguments
 
 =over
 
-=item * $x
+=item * B<$x>, X
 
-=item * $y
+=item * B<$y>, Y
 
-=item * $z
+=item * B<$z>, Z
 
 =back
 
@@ -479,11 +480,11 @@ Spherical coordinates:
 
 =over
 
-=item * $r
+=item * B<$r>, distance from the origin;
 
-=item * $theta
+=item * B<$theta> (in radians) corresponding to [-90 deg, +90 deg];
 
-=item * $phi
+=item * B<$phi> (in radians) corresponding to [-360 deg, +360 deg])
 
 =back
 

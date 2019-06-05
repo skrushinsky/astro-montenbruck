@@ -194,7 +194,7 @@ subtest 'Coordinates conversions' => sub {
 
     subtest 'Rectangular --> Spherical' => sub {
         plan tests => 3;
-        my ( $r, $theta, $phi ) = spherical( $x0, $y0, $z0 );
+        my ( $r, $theta, $phi ) = polar( $x0, $y0, $z0 );
         delta_ok($r0, $r,  'r' );
         delta_ok($theta0, $theta, 'theta' );
         delta_ok($phi0, $phi,  'phi' );
@@ -202,7 +202,7 @@ subtest 'Coordinates conversions' => sub {
 
     subtest 'Spherical --> Rectangular' => sub {
         plan tests => 3;
-        my ( $x, $y, $z ) = rectangular( $r0, $theta0, $phi0 );
+        my ( $x, $y, $z ) = cart( $r0, $theta0, $phi0 );
         delta_ok($x0, $x, 'x' );
         delta_ok($y0, $y, 'y' );
         delta_ok($z0, $z, 'z' );

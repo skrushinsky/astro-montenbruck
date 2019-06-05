@@ -4,7 +4,7 @@ use warnings;
 
 use Readonly;
 use Math::Trig qw/:pi rad2deg/;
-use Astro::Montenbruck::MathUtils qw/frac spherical rectangular/;
+use Astro::Montenbruck::MathUtils qw/frac polar/;
 
 our $VERSION = 0.01;
 
@@ -89,7 +89,7 @@ sub position {
     my ( $self, $t, $sun, $nut_func ) = @_;
     my ( $l, $b, $r ) = $self->heliocentric($t);
     # geocentric ecliptic coordinates (light-time corrected)
-    my ( $r, $the, $phi ) = spherical(
+    my ( $r, $the, $phi ) = polar(
         $nut_func->(
             $self->_geocentric( $t, { l => $l, b => $b, r => $r }, $sun )
         )

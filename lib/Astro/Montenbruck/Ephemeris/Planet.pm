@@ -34,6 +34,8 @@ sub new {
 }
 
 
+# from the time derivatives of the polar coordinates (l, b, r)
+# derive the components of the velocity vector in ecliptic coordinates
 sub _posvel {
     my ( $self, $l, $b, $r, $dl, $db, $dr ) = @_;
     my $cl = cos($l);
@@ -51,23 +53,22 @@ sub _posvel {
 
 sub _geocentric {
     my ( $self, $t, $hpla_ref, $gsun_ref ) = @_;
-    my ( $dl, $db, $dr, $dls, $dbs, $drs );
 
-    # not geometric
     my $m = pi2 * frac( 0.9931266 + 99.9973604 * $t ); # Sun
-    $dls = 172.00 + 5.75 * sin($m);
-    $drs = 2.87 * cos($m);
-    $dbs = 0.0;
+    # calculate the heliocentric velosity vector, which is required
+    # to take account of the various aberration effects.
+    my $dls = 172.00 + 5.75 * sin($m);
+    my $drs = 2.87 * cos($m);
+    my $dbs = 0.0;
     ###
-    ( $dl, $db, $dr ) = $self->_lbr_geo($t);
-    ###
+    my ( $dl, $db, $dr ) = $self->_lbr_geo($t);
 
+    # ecliptic geocentric coordinates of the Sun
     my ( $xs, $ys, $zs, $vxs, $vys, $vzs ) =
-      $self->_posvel( $gsun_ref->{l}, $gsun_ref->{b}, $gsun_ref->{r}, $dls,
-        $dbs, $drs );
+      $self->_posvel( $gsun_ref->{l}, $gsun_ref->{b}, $gsun_ref->{r}, $dls, $dbs, $drs );
+    # ecliptic heliocentric coordinates of the planet
     my ( $xp, $yp, $zp, $vx, $vy, $vz ) =
-      $self->_posvel( $hpla_ref->{l}, $hpla_ref->{b}, $hpla_ref->{r}, $dl, $db,
-        $dr );
+      $self->_posvel( $hpla_ref->{l}, $hpla_ref->{b}, $hpla_ref->{r}, $dl, $db, $dr );
     my $x = $xp + $xs;
     my $y = $yp + $ys;
     my $z = $zp + $zs;
@@ -81,29 +82,20 @@ sub _geocentric {
     $y -= $fac * ( $vy + $vys );
     $z -= $fac * ( $vz + $vzs );
 
-    { l => $xp, b => $yp, r => $zp }, # ecliptic heliocentric coordinates of the planet
-    { x => $xs, y => $ys, z => $zs }, # ecliptic geocentric coordinates of the Sun
-    { x => $x,  y => $y,  z => $z  }  # ecliptic geocentric coordinates of the planet
+    $x, $y, $z # ecliptic geocentric coordinates of the planet
 }
 
 sub position {
     my ( $self, $t, $sun, $nut_func ) = @_;
     my ( $l, $b, $r ) = $self->heliocentric($t);
-
     # geocentric ecliptic coordinates (light-time corrected)
-    my ( $ph_ref, $sg_ref, $pg_ref ) =
-      $self->_geocentric( $t, { l => $l, b => $b, r => $r }, $sun );
-    my ( $x, $y, $z ) = $nut_func->( map{ $pg_ref->{$_} } qw/x y z/);
-
-    # heliocentric ecliptic (geometric)
-    my ( $hx, $hy, $hz ) =
-      spherical( $ph_ref->{r}, $ph_ref->{b}, $ph_ref->{l} );
-
-    # spherical coordinates: delta (au), latitude and longitude (radians)
-    my ( $gz, $gy, $gx ) = spherical( $x, $y, $z );
-
+    my ( $r, $the, $phi ) = spherical(
+        $nut_func->(
+            $self->_geocentric( $t, { l => $l, b => $b, r => $r }, $sun )
+        )
+    );
     # convert to degrees
-    { x => rad2deg($gx), y => rad2deg($gy), z => $gz };
+    { x => rad2deg($phi), y => rad2deg($the), z => $r };
 }
 
 sub heliocentric {

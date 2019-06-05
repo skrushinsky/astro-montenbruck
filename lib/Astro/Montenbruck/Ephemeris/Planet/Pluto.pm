@@ -166,7 +166,7 @@ Astro::Montenbruck::Ephemeris::Planet::Pluto - Pluto.
 
   use Astro::Montenbruck::Ephemeris::Planet::Pluto;
   my $planet = Astro::Montenbruck::Ephemeris::Planet::Pluto->new();
-  my $geo = $planet->position($t); #  apparent geocentric ecliptical coordinates
+  my @geo = $planet->position($t); # apparent geocentric ecliptical coordinates
 
 =head1 DESCRIPTION
 

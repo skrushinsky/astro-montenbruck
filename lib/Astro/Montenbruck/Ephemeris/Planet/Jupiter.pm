@@ -158,7 +158,7 @@ Astro::Montenbruck::Ephemeris::Planet::Jupiter - Jupiter.
 
   use Astro::Montenbruck::Ephemeris::Planet::Jupiter;
   my $planet = Astro::Montenbruck::Ephemeris::Planet::Jupiter->new();
-  my $geo = $planet->position($t); #  apparent geocentric ecliptical coordinates
+  my @geo = $planet->position($t); # apparent geocentric ecliptical coordinates
 
 =head1 DESCRIPTION
 

@@ -170,7 +170,7 @@ sub position {
     my $r = 1.0001398 - 0.0000007 * $t + $dr * 1.0e-6;
     my $b = $db / ARCS;
 
-    { x => rad2deg($l), y => rad2deg($b), z => $r };
+    rad2deg($l), rad2deg($b),  $r;
 
 }
 
@@ -190,7 +190,7 @@ Astro::Montenbruck::Ephemeris::Planet::Sun - Sun.
 
   use Astro::Montenbruck::Ephemeris::Planet::Sun;
   my $planet = Astro::Montenbruck::Ephemeris::Planet::Sun->new();
-  my $geo = $planet->position($t); #  apparent geocentric ecliptical coordinates
+  my @geo = $planet->position($t); # apparent geocentric ecliptical coordinates
 
 =head1 DESCRIPTION
 

@@ -49,7 +49,7 @@ subtest 'Planets' => sub {
         while ( my $res = $iter->() ) {
             my ($id, $pos) = @$res;
             my ($x0, $y0, $z0) = @{ $data->{$id} };
-            my ($x1, $y1, $z1) = ($pos->{x}, $pos->{y}, $pos->{z});
+            my ($x1, $y1, $z1) = @$pos;
 
             delta_ok($x0, $x1, "$id X") or diag("Expected: $x0, got: $x1");
             delta_ok($y0, $y1, "$id Y") or diag("Expected: $y0, got: $y1");
@@ -61,12 +61,13 @@ subtest 'Planets' => sub {
         plan tests => (scalar @ids) * 3;
 
         find_positions($t, \@ids, sub {
-            my ($id, %pos) = @_;
+            my $id = shift;
+            my @pos = @_;
             my ($x0, $y0, $z0) = @{ $data->{$id} };
 
-            delta_ok($x0, $pos{x}, "$id X") or diag("Expected: $x0, got: $pos{x}");
-            delta_ok($y0, $pos{y}, "$id Y") or diag("Expected: $y0, got: $pos{y}");
-            delta_ok($z0, $pos{z}, "$id Z") or diag("Expected: $z0, got: $pos{z}");
+            delta_ok($x0, $pos[0], "$id X") or diag("Expected: $x0, got: $pos[0]");
+            delta_ok($y0, $pos[1], "$id Y") or diag("Expected: $y0, got: $pos[1]");
+            delta_ok($z0, $pos[2], "$id Z") or diag("Expected: $z0, got: $pos[2]");
         });
     };
 };

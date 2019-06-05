@@ -314,9 +314,9 @@ sub position {
     $sinpi *= 0.999953253;
 
     # the original: wrong value my $r = ARCS / $sinpi;
-    my $r = 8.794 / $sinpi;
+    my $delta = 8.794 / $sinpi;
 
-    { x => $lambda, y => $beta, z => $r };
+    $lambda, $beta, $delta
 
 }
 
@@ -336,7 +336,7 @@ Astro::Montenbruck::Ephemeris::Planet::Moon - Moon.
 
   use Astro::Montenbruck::Ephemeris::Planet::Moon;
   my $planet = Astro::Montenbruck::Ephemeris::Planet::Moon->new();
-  my $geo = $planet->position($t); #  apparent geocentric ecliptical coordinates
+  my @geo = $planet->position($t); # apparent geocentric ecliptical coordinates
 
 =head1 DESCRIPTION
 

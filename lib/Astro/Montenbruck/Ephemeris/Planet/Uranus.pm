@@ -195,7 +195,7 @@ Astro::Montenbruck::Ephemeris::Planet::Uranus - Uranus.
 
   use Astro::Montenbruck::Ephemeris::Planet::Uranus;
   my $planet = Astro::Montenbruck::Ephemeris::Planet::Uranus->new();
-  my $geo = $planet->position($t); #  apparent geocentric ecliptical coordinates
+  my @geo = $planet->position($t); # apparent geocentric ecliptical coordinates
 
 =head1 DESCRIPTION
 

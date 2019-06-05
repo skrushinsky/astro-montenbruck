@@ -141,7 +141,7 @@ Astro::Montenbruck::Ephemeris::Planet::Neptune - Neptune.
 
   use Astro::Montenbruck::Ephemeris::Planet::Neptune;
   my $planet = Astro::Montenbruck::Ephemeris::Planet::Neptune->new();
-  my $geo = $planet->position($t); #  apparent geocentric ecliptical coordinates
+  my @geo = $planet->position($t); # apparent geocentric ecliptical coordinates
 
 =head1 DESCRIPTION
 

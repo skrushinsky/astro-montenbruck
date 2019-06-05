@@ -182,39 +182,39 @@ my $dms_or_ddd = sub {
 };
 
 while ( my $res = $iter->() ) {
-    my ( $id, $pos ) = @$res;
+    my ( $id, $pos, $motion ) = @$res;
     my $x_str;
     if ( grep /^$coo$/, (@EQU_COORDS, $COO_HRZ_DEGREES) ) {
-        ( $pos->{x}, $pos->{y} ) = ecl2equ( $pos->{x}, $pos->{y}, $obliq );
+        ( $pos->[0], $pos->[1] ) = ecl2equ( $pos->[0], $pos->[1], $obliq );
         if ( $coo == $COO_EQU_HOURS ) {
-            $pos->{x} /= 15;
-            $x_str = $dms_or_ddd->( $pos->{x}, places => 2 );
+            $pos->[0] /= 15;
+            $x_str = $dms_or_ddd->( $pos->[0], places => 2 );
         } elsif ( $coo == $COO_EQU_DEGREES ) {
-            $x_str = $dms_or_ddd->( $pos->{x} );
+            $x_str = $dms_or_ddd->( $pos->[0] );
         }
         elsif ( $coo == $COO_HRZ_DEGREES ) {
-            my $h = $lst * 15 - $pos->{x}; # hour angle, arc-degrees
-            ( $pos->{x}, $pos->{y} ) = equ2hor( $h, $pos->{y}, $geo[0]);
-            $x_str = $dms_or_ddd->( $pos->{x} );
+            my $h = $lst * 15 - $pos->[0]; # hour angle, arc-degrees
+            ( $pos->[0], $pos->[1] ) = equ2hor( $h, $pos->[1], $geo[0]);
+            $x_str = $dms_or_ddd->( $pos->[0] );
         }
     }
     elsif ( $coo == $COO_ECL_ZODIAC ) {
-        $x_str = dmsz_str( $pos->{x}, decimal => $fmt == $FMT_DECIMAL );
+        $x_str = dmsz_str( $pos->[0], decimal => $fmt == $FMT_DECIMAL );
     }
     else {
-        $x_str = $dms_or_ddd->( $pos->{x}, places => 3 );
+        $x_str = $dms_or_ddd->( $pos->[0], places => 3 );
     }
     my $y_str = $dms_or_ddd->(
-        $pos->{y},
+        $pos->[1],
         places => 2,
         sign   => 1,
     );
-    my $z_str = sprintf( '%07.4f', $pos->{z} );
+    my $z_str = sprintf( '%07.4f', $pos->[2] );
     #my $name = $id eq $LN ? 'True Node' : $id;
     my $name = $id;
-    if ($arg{m}) {
+    if (defined $motion) {
         my $m_str = $dms_or_ddd->(
-            $pos->{motion},
+            $motion,
             places => 2,
             sign   => 1,
         );

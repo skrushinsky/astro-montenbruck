@@ -198,7 +198,7 @@ Astro::Montenbruck::Ephemeris::Planet::Saturn - Saturn.
 
   use Astro::Montenbruck::Ephemeris::Planet::Saturn;
   my $planet = Astro::Montenbruck::Ephemeris::Planet::Saturn->new();
-  my $geo = $planet->position($t); #  apparent geocentric ecliptical coordinates
+  my @geo = $planet->position($t); # apparent geocentric ecliptical coordinates
 
 =head1 DESCRIPTION
 

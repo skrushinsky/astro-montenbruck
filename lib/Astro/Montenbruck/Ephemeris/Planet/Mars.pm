@@ -238,7 +238,7 @@ Astro::Montenbruck::Ephemeris::Planet::Mars  - Mars.
 
   use Astro::Montenbruck::Ephemeris::Planet::Mars;
   my $planet = Astro::Montenbruck::Ephemeris::Planet::Mars->new();
-  my $geo = $planet->position($t); #  apparent geocentric ecliptical coordinates
+  my @geo = $planet->position($t); # apparent geocentric ecliptical coordinates
 
 =head1 DESCRIPTION
 

@@ -193,7 +193,7 @@ Astro::Montenbruck::Ephemeris::Planet::Mercury - Mercury.
 
   use Astro::Montenbruck::Ephemeris::Planet::Mercury;
   my $planet = Astro::Montenbruck::Ephemeris::Planet::Mercury->new();
-  my $geo = $planet->position($t); #  apparent geocentric ecliptical coordinates
+  my @geo = $planet->position($t); # apparent geocentric ecliptical coordinates
 
 =head1 DESCRIPTION
 

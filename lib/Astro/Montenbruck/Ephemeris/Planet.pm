@@ -48,7 +48,8 @@ sub _posvel {
     my $vy = $dr * $sl * $cb + $dl * $r * $cl * $cb - $db * $r * $sl * $sb;
     my $z  = $r * $sb;
     my $vz = $dr * $sb + $db * $r * $cb;
-    ( $x, $y, $z, $vx, $vy, $vz );
+
+    $x, $y, $z, $vx, $vy, $vz;
 }
 
 sub _geocentric {
@@ -89,13 +90,13 @@ sub position {
     my ( $self, $t, $sun, $nut_func ) = @_;
     my ( $l, $b, $r ) = $self->heliocentric($t);
     # geocentric ecliptic coordinates (light-time corrected)
-    my ( $rho, $the, $phi ) = polar(
+    my ( $rad, $the, $phi ) = polar(
         $nut_func->(
             $self->_geocentric( $t, { l => $l, b => $b, r => $r }, $sun )
         )
     );
     # convert to degrees
-    { x => rad2deg($phi), y => rad2deg($the), z => $rho };
+    rad2deg($phi), rad2deg($the), $rad;
 }
 
 sub heliocentric {
@@ -136,7 +137,7 @@ method.
 
 Constructor. B<$id> is identifier from C<@PLANETS> array (See L</"EXPORTED CONSTANTS">).
 
-=head2 $xyz = $self->position($t, $sun)
+=head2 $self->position($t, $sun)
 
 Geocentric ecliptic coordinates of a planet
 
@@ -156,15 +157,15 @@ B<$sun> — ecliptic geocentric coordinates of the Sun (hashref with B<'x'>, B<'
 
 =head3 Returns
 
-Hashref of geocentric ecliptical coordinates.
+Array of geocentric ecliptical coordinates.
 
 =over
 
-=item * B<x> — geocentric longitude, arc-degrees
+=item * longitude, arc-degrees
 
-=item * B<y> — geocentric latitude, arc-degrees
+=item * latitude, arc-degrees
 
-=item * B<z> — distance from Earth, AU
+=item * distance from Earth, AU
 
 =back
 

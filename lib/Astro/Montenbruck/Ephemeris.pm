@@ -32,7 +32,7 @@ Readonly our $DAY_IN_CENT => 1 / 36525;
 # Example:
 # my $f = _create_constructor('Astro::Montenbruck::Ephemeris::Planets::Sun');
 # my $sun = $f->(); # instantiate the object
-# my $pos = $sun->position($t); # calculate coordinates for the moment $t
+# my @pos = $sun->position($t); # calculate coordinates for the moment $t
 sub _create_constructor {
     my $pkg = shift;
     load $pkg;
@@ -56,18 +56,18 @@ sub _iterator {
 
     # Return position of the Sun, that are calculated only once.
     my $get_sun_pos = sub {
-        $sun_pos = _construct('Planet', $SU)->()->position($t)
+        $sun_pos = [ _construct('Planet', $SU)->()->position($t) ]
             unless defined $sun_pos;
-        $sun_pos;
+        $sun_pos
     };
 
     # Return l, b, r of the Sun, l and b in radians.
     my $get_sun_lbr = sub {
         my $pos = $get_sun_pos->();
         $sun_lbr = {
-            l => deg2rad($pos->{x}),
-            b => deg2rad($pos->{y}),
-            r => $pos->{z}
+            l => deg2rad($pos->[0]),
+            b => deg2rad($pos->[1]),
+            r => $pos->[2]
         } unless defined $sun_lbr;
         $sun_lbr;
     };
@@ -86,12 +86,14 @@ sub _iterator {
                 return $get_sun_pos->()
             }
             when ($MO) {
-                return _construct('Planet', $id)->()->position($t)
+                return [ _construct('Planet', $id)->()->position($t) ]
             }
             default {
-                return _construct('Planet', $id)->()->position(
-                    $t,  $get_sun_lbr->(), $get_nut_func->()
-                )
+                return [
+                    _construct('Planet', $id)->()->position(
+                        $t,  $get_sun_lbr->(), $get_nut_func->()
+                    )
+                ]
             }
         }
     };
@@ -119,7 +121,7 @@ sub iterator {
 
     return sub {
         my $res = $iter_1->() or return;
-        $res->[1]->{motion} = diff_angle($res->[1]->{x}, $iter_2->()->[1]->{x});
+        $res->[2] = diff_angle($res->[1]->[0], $iter_2->()->[1]->[0]);
         $res
     }
 }
@@ -131,8 +133,8 @@ sub find_positions {
 
     my $iter = iterator($t, $ids_ref, @_);
     while ( my $res = $iter->() ) {
-        my ($id, $pos) = @$res;
-        $callback->($id, %$pos);
+        my ($id, $pos, $motion) = @$res;
+        $callback->( $id, @$pos, $motion );
     }
 }
 
@@ -176,8 +178,8 @@ Astro::Montenbruck::Ephemeris - calculate planetary positions.
                                     # for better accuracy, convert $t to Ephemeris (Dynamic) time.
 
   find_positions($t, \@PLANETS, sub {
-      my ($id, %pos) = @_;
-      say "$id X: $pos{x}, Y: $pos{y}, Z: $pos{z}";
+      my ($id, $lambda, $beta, $delta) = @_;
+      say "$id $lambda, $beta, $delta";
   })
 
 
@@ -234,23 +236,16 @@ when exhausted, or arrayref, containing:
 
 =over
 
-=item * identifier of the celestial body, a string
+=item *
 
-=item * a hashref, containing celestial coordinates and mean daily motion
+identifier of the celestial body, a string
 
-=back
+=item *
 
-=head3 Coordinates and daily motion
+arrayref, containing ecliptic coordinates: I<longitude> (arc-degrees),
+I<latitude> (arc-degrees) and distance from Earth (AU).
 
-=over
-
-=item * B<x> — celestial longitude, arc-degrees
-
-=item * B<y> — celestial latitude, arc-degrees
-
-=item * B<z> — distance from Earth in A.U.
-
-=item * B<motion> — mean daily motion, degrees, (only when I<with_motion> flag is set)
+=item * mean daily motion, double, if C<with_motion> option is I<true>
 
 =back
 
@@ -269,7 +264,7 @@ B<$ids> — reference to an array of ids of celestial bodies to be calculated.
 
 =back
 
-=head3 Named Arguments
+=head3 Options
 
 =over
 
@@ -282,12 +277,15 @@ field in the result;  I<false> by default.
 
 =head2 find_positions($t, $ids, $callback, %options)
 
-The arguments are the same as for the L<iterator|/iterator($t, $ids, %options)>,
-except the third, which is a B<callback function>. It is called on each iteration:
+The arguments and options are the same as for the L<iterator|/iterator($t, $ids, %options)>,
+except the third argument, which is a B<callback function>, called on each iteration:
 
-  $callback->($id, x => $scalar, y => $scalar, z => $scalar [, motion => $scalar])
+  $callback->($id, $lambda, $beta, $delta [, $daily_motion])
 
-The arguments are the same as described L<above|/Coordinates and daily motion>.
+I<$lambda>, I<$beta>, I<$delta> are ecliptic coordinates: I<longitude> (arc-degrees),
+I<latitude> (arc-degrees) and distance from Earth (AU). The fifth argument,
+I<$daily_motion> is defined only when C<with_motion> option is on; it is the
+mean daily motion (arc-degrees).
 
 
 =head1 AUTHOR

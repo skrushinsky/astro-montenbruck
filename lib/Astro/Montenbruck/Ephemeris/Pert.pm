@@ -7,10 +7,10 @@ our @EXPORT_OK = qw(pert addthe);
 
 our $VERSION = 0.01;
 
-use constant O => 16;
+use constant OFFSET => 16;
 use constant {
-    Om1 => O - 1,
-    Op1 => O + 1,
+    OFFSET_M => OFFSET - 1,
+    OFFSET_P => OFFSET + 1,
 };
 
 sub addthe {
@@ -18,73 +18,65 @@ sub addthe {
 }
 
 sub pert {
-    my %arg      = @_;
-    my $callback = $arg{callback};
-    my $_m_T     = $arg{T};
-    my $_M       = $arg{M};
-    my $_I_min   = $arg{I_min};
-    my $_I_max   = $arg{I_max};
-    my $_i_min   = $arg{i_min};
-    my $_i_max   = $arg{i_max};
-    my $_phi     = $arg{phi} || 0.0;
-    my $_m_cosM  = cos( $arg{M} );
-    my $_m_sinM  = sin( $arg{M} );
-    my $_m_C     = [];
-    my $_m_S     = [];
-    my $_m_c     = [];
-    my $_m_s     = [];
-    $_m_C->[O] = cos($_phi);
-    $_m_S->[O] = sin($_phi);
+    my %arg = @_;
+    my ($callback, $t, $M, $m, $I_min, $I_max, $i_min, $i_max, $phi) =
+        map{ $arg{$_} } qw/callback T M m I_min I_max i_min i_max phi/;
+    $phi //= 0;
 
-    for ( my $i = 0 ; $i < $_I_max ; $i++ ) {
-        my $k  = O + $i;
-        my $k1 = $k + 1;
-        ( $_m_C->[$k1], $_m_S->[$k1] ) =
-          addthe( $_m_C->[$k], $_m_S->[$k], $_m_cosM, $_m_sinM );
+    my $cos_m  = cos( $M );
+    my $sin_m  = sin( $M );
+    my @C;
+    my @S;
+    my @c;
+    my @s;
+
+    $C[OFFSET] = cos($phi);
+    $S[OFFSET] = sin($phi);
+
+    for ( my $i = 0; $i < $I_max; $i++ ) {
+        my $j  = OFFSET + $i;
+        my $k = $j + 1;
+        ( $C[$k], $S[$k] ) = addthe( $C[$j], $S[$j], $cos_m, $sin_m );
     }
-    for ( my $i = 0 ; $i > $_I_min ; $i-- ) {
-        my $k  = O + $i;
-        my $k1 = $k - 1;
-        ( $_m_C->[$k1], $_m_S->[$k1] ) =
-          addthe( $_m_C->[$k], $_m_S->[$k], $_m_cosM, -$_m_sinM );
+    for ( my $i = 0; $i > $I_min; $i-- ) {
+        my $j  = OFFSET + $i;
+        my $k = $j - 1;
+        ( $C[$k], $S[$k] ) = addthe( $C[$j], $S[$j], $cos_m, -$sin_m );
     }
-    $_m_c->[O]   = 1.0;
-    $_m_c->[Op1] = cos( $arg{m} );
-    $_m_c->[Om1] = +$_m_c->[Op1];
-    $_m_s->[O]   = 0.0;
-    $_m_s->[Op1] = sin( $arg{m} );
-    $_m_s->[Om1] = -$_m_s->[Op1];
-    for ( my $i = 1 ; $i < $_i_max ; $i++ ) {
-        my $k  = O + $i;
-        my $k1 = $k + 1;
-        ( $_m_c->[$k1], $_m_s->[$k1] ) =
-          addthe( $_m_c->[$k], $_m_s->[$k], $_m_c->[Op1], $_m_s->[Op1] );
+    $c[OFFSET]   = 1.0;
+    $c[OFFSET_P] = cos( $m );
+    $c[OFFSET_M] = $c[OFFSET_P];
+    $s[OFFSET]   = 0.0;
+    $s[OFFSET_P] = sin( $m );
+    $s[OFFSET_M] = -$s[OFFSET_P];
+    for ( my $i = 1; $i < $i_max; $i++ ) {
+        my $j  = OFFSET + $i;
+        my $k = $j + 1;
+        ( $c[$k], $s[$k] ) = addthe( $c[$j], $s[$j], $c[OFFSET_P], $s[OFFSET_P] );
     }
-    for ( my $i = -1 ; $i > $_i_min ; $i-- ) {
-        my $k  = O + $i;
-        my $k1 = $k - 1;
-        ( $_m_c->[$k1], $_m_s->[$k1] ) =
-          addthe( $_m_c->[$k], $_m_s->[$k], $_m_c->[Om1], $_m_s->[Om1] );
+    for ( my $i = -1; $i > $i_min; $i-- ) {
+        my $j  = OFFSET + $i;
+        my $k = $j - 1;
+        ( $c[$k], $s[$k] ) = addthe( $c[$j], $s[$j], $c[OFFSET_M], $s[OFFSET_M] );
     }
-    my $_m_u = 0.0;
-    my $_m_v = 0.0;
+
+    my ($u, $v) = (0, 0);
 
     sub {
         my ( $I, $i, $iT, $dlc, $dls, $drc, $drs, $dbc, $dbs ) = @_;
-        my $k = O + $I;
-        my $j = O + $i;
+        my $k = OFFSET + $I;
+        my $j = OFFSET + $i;
         if ( $iT == 0 ) {
-            ( $_m_u, $_m_v ) =
-              addthe( $_m_C->[$k], $_m_S->[$k], $_m_c->[$j], $_m_s->[$j] );
+            ( $u, $v ) = addthe( $C[$k], $S[$k], $c[$j], $s[$j] );
         }
         else {
-            $_m_u *= $_m_T;
-            $_m_v *= $_m_T;
+            $u *= $t;
+            $v *= $t;
         }
         $callback->(
-            $dlc * $_m_u + $dls * $_m_v,
-            $drc * $_m_u + $drs * $_m_v,
-            $dbc * $_m_u + $dbs * $_m_v
+            $dlc * $u + $dls * $v,
+            $drc * $u + $drs * $v,
+            $dbc * $u + $dbs * $v
         );
       }
 }
@@ -108,18 +100,6 @@ Astro::Montenbruck::Ephemeris::Pert - Calculation of perturbations.
   ($dl, $dr, $db) = (0, 0, 0); # Corrections in longitude ["],
   $pert_cb = sub { $dl += $_[0]; $dr += $_[1]; $db += $_[2] };
 
-  # Perturbations by Venus
-  $term
-    = pert( T     => $t,
-            M     => $m1,
-            m     => $m2,
-            I_min =>-1,
-            I_max => 9,
-            i_min =>-5,
-            i_max => 0,
-            callback => $pert_cb);
-
-  # Perturbations by the Earth
   $term
     = pert( T     => $t,
             M     => $m1,
@@ -129,6 +109,9 @@ Astro::Montenbruck::Ephemeris::Pert - Calculation of perturbations.
             i_min =>-4,
             i_max =>-1,
             callback => $pert_cb);
+ $term->(-1, -1,0, -0.2, 1.4, 2.0,  0.6,  0.1, -0.2);
+ $term->( 0, -1,0,  9.4, 8.9, 3.9, -8.3, -0.4, -1.4);
+ ...
 
 =head1 DESCRIPTION
 
@@ -155,12 +138,16 @@ Calculates perturbations to ecliptic heliocentric coordinates of the planet.
 
 =over
 
-=item * $t — time in centuries since epoch 2000.0
+=item * B<T> — time in centuries since epoch 2000.0
 
-=item * M, m, I_min, I_max, i_min, i_max — misc. internal indices
+=item *
 
-=item * callback — reference to a function which receives corrections to 3
-coordinates and typically applies them (see the example above)
+B<M>, B<m>, B<I_min>, B<I_max>, B<i_min>, B<i_max> — internal indices
+
+=item *
+
+B<callback> — reference to a function which recievs corrections to the 3
+coordinates and typically applies them (see L</SYNOPSIS>)
 
 =back
 

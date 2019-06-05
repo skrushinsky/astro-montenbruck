@@ -330,7 +330,7 @@ __END__
 
 =head1 NAME
 
-Astro::Montenbruck::Ephemeris::Planet::Moon
+Astro::Montenbruck::Ephemeris::Planet::Moon - Moon.
 
 =head1 SYNOPSIS
 

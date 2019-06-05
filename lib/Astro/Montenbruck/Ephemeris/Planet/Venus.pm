@@ -177,7 +177,7 @@ __END__
 
 =head1 NAME
 
-Astro::Montenbruck::Ephemeris::Planet::Venus
+Astro::Montenbruck::Ephemeris::Planet::Venus - Venus.
 
 =head1 SYNOPSIS
 

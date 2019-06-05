@@ -192,7 +192,7 @@ __END__
 
 =head1 NAME
 
-Astro::Montenbruck::Ephemeris::Planet::Saturn
+Astro::Montenbruck::Ephemeris::Planet::Saturn - Saturn.
 
 =head1 SYNOPSIS
 

@@ -152,7 +152,7 @@ __END__
 
 =head1 NAME
 
-Astro::Montenbruck::Ephemeris::Planet::Jupiter
+Astro::Montenbruck::Ephemeris::Planet::Jupiter - Jupiter.
 
 =head1 SYNOPSIS
 

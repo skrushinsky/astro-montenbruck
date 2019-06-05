@@ -115,15 +115,11 @@ sub diff_angle($a, $b, $mode = 'degrees') {
 
 sub rectangular( $r, $theta, $phi ) {
     my $rcst = $r * cos($theta);
-
-    # returns x, y, z
     $rcst * cos($phi), $rcst * sin($phi), $r * sin($theta);
 }
 
 # in previous versions was named 'polar'
-
 sub spherical ( $x, $y, $z ) {
-    #cartesian_to_spherical($x, $y, $z);
     my $rho = $x * $x + $y * $y;
     my $r   = sqrt( $rho + $z * $z );
     my $phi = atan2( $y, $x );

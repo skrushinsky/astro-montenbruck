@@ -10,7 +10,7 @@ use lib "$Bin/../lib";
 use Test::More tests => 9;
 use Test::Number::Delta within => 1e-6;
 
-use Math::Trig qw/:pi deg2rad/;
+use Math::Trig qw/:pi deg2rad :radial/;
 
 BEGIN {
 	use_ok( 'Astro::Montenbruck::MathUtils', qw/:all/ );
@@ -208,15 +208,3 @@ subtest 'Coordinates conversions' => sub {
         delta_ok($z0, $z, 'z' );
     };
 }
-
-
-
-#
-# {
-#     ok( compare_to_seconds( 23.4409462909573, 23.4409464906586 ),
-#         'compare_to_seconds: almost equal' );
-#     ok( compare_to_seconds( 23.7, 23.8 ) == 0,
-#         'compare_to_seconds: not equal' );
-#     ok( compare_to_seconds( 23, 23 ), 'compare_to_seconds: absolutely equal' );
-#
-# }

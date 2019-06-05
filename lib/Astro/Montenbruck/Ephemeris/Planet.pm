@@ -89,13 +89,13 @@ sub position {
     my ( $self, $t, $sun, $nut_func ) = @_;
     my ( $l, $b, $r ) = $self->heliocentric($t);
     # geocentric ecliptic coordinates (light-time corrected)
-    my ( $r, $the, $phi ) = polar(
+    my ( $rho, $the, $phi ) = polar(
         $nut_func->(
             $self->_geocentric( $t, { l => $l, b => $b, r => $r }, $sun )
         )
     );
     # convert to degrees
-    { x => rad2deg($phi), y => rad2deg($the), z => $r };
+    { x => rad2deg($phi), y => rad2deg($the), z => $rho };
 }
 
 sub heliocentric {

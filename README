@@ -20,7 +20,7 @@ The present library is an attempt to find a middle-ground between precision on
 the one hand and compact, well organized code on the other. I tried to follow the
 best practices of modern Perl programming.
 
-## Precision
+PRECISION
 
 As the book authors state in Introduction to the 4-th edition,
 "The errors in the fundamental routines for determining the coordinates of the

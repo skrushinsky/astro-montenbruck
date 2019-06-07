@@ -21,13 +21,14 @@ my $builder = Module::Build->new(
         'Pod::Simple::XHTML' => '0'
     },
     requires => {
-        'Readonly'      => '2.05',
-        'Memoize'       => '1.03',
+        'Readonly'        => '2.05',
+        'Memoize'         => '1.03',
+        'Term::ANSIColor' => '1.00',
         #'Log::Log4perl' => '1.49',
-        'DateTime'      => '1.44',
+        'DateTime'        => '1.44',
         'DateTime::Format::Strptime' => '1.76',
     },
-    add_to_cleanup      => [ 'Astro-*' ],
+    add_to_cleanup        => [ 'Astro-*' ],
 );
 
 $builder->create_build_script();

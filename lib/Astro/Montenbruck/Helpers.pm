@@ -25,8 +25,7 @@ Readonly::Array our @ZODIAC =>
   qw/Aries Taurus Gemini Cancer Leo Virgin Libra Scorpio
   Sagittarius Capricorn Aquarius Pisces/;
 
-our $LOCALE = setlocale(LC_ALL);
-
+our $LOCALE = setlocale(LC_TIME);
 use Astro::Montenbruck::MathUtils qw/dms zdms frac/;
 
 
@@ -54,7 +53,10 @@ sub parse_datetime {
 }
 
 sub parse_geocoords {
-$DB::single=1;
+$DB::single = 1;
+    for (@_) {
+        die "Unsupported geo-coordinates format: $_" unless /^\d+[NSWE]\d+$/i
+    }
     my ($lats, $lons) = $_[0] =~ /N|S/i ? @_ : @_[1, 0];
     my $lat = eval {
         $lats =~ /^(\d+)(S|N)(\d+)$/i;
@@ -80,13 +82,13 @@ sub dmsz_str {
         sprintf( '%05.2f %s', ( $x % 30 ) + frac($x), $z );
     }
     else {
-        sprintf( '%02d:%02d %s', $d, $m, $z );
+        sprintf( '%02d°%02d′ %s', $d, $m, $z );
     }
 }
 
 sub dms_str {
     my $x = shift;
-    sprintf( '%03d:%02d:%02d', dms($x) );
+    sprintf( '%03d°%02d′%02d″', dms($x) );
 }
 
 sub dms_or_dec_str {
@@ -96,12 +98,12 @@ sub dms_or_dec_str {
 
     if ( $arg{decimal} ) {
         my $f = sprintf( '0%d', $arg{places} + 3 );
-        my $fmt = "$s%$f.2f";
+        my $fmt = "$s%$f.2f°";
         sprintf( $fmt, abs($x) );
     }
     else {
         my $f = sprintf( '0%dd', $arg{places} );
-        my $fmt = "$s%$f:%02d:%02d";
+        my $fmt = "$s%$f°%02d′%02d″";
         sprintf( $fmt, dms( abs($x) ) );
     }
 }
@@ -127,8 +129,7 @@ sub latde_str {
 
 sub format_geo {
     my ($lat, $lon) = @_;
-    my $a = abs($lat);
-    my $b = abs($lon);
+    my ($a, $b) = map { abs} ($lat, $lon);
     my @lat = dms($a, 2);
     my $lats = sprintf('%02d%s%02d', $lat[0], ( $lat < 0 ? 'S' : 'N'), $lat[1] );
     my @lon = dms($b, 2);

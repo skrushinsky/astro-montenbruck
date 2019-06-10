@@ -3,85 +3,77 @@
 use 5.22.0;
 use strict;
 no warnings qw/experimental/;
+
 use utf8;
 use FindBin qw/$Bin/;
 use lib ("$Bin/../lib");
 use Getopt::Long qw/GetOptions/;
 use Pod::Usage qw/pod2usage/;
 use DateTime;
-use DateTime::Format::Strptime;
 use Term::ANSIColor;
 
 use Readonly;
 
-use Astro::Montenbruck::Time qw/jd_cent jd2lst $SEC_PER_CEN/;
+use Astro::Montenbruck::Time qw/jd_cent jd2lst $SEC_PER_CEN jd2unix/;
 use Astro::Montenbruck::Time::DeltaT qw/delta_t/;
 use Astro::Montenbruck::MathUtils qw/frac hms/;
+use Astro::Montenbruck::Helpers qw/
+    parse_datetime parse_geocoords format_geo hms_str $LOCALE/;
 
 my $man    = 0;
 my $help   = 0;
 my $use_dt = 1;
+my $time   = DateTime->now()->set_locale($LOCALE)->strftime('%F %T');
+my @place;
 
-my %datetime = (
-    value => DateTime->now('%F %T %Z'),
-    mode  => 'DT',
-);
-my %place = (
-    name  => 'Unknown',
-    lat   => '51N30',
-    lon   => '000W07'
-);
-
-sub jd_to_timepiece {
-    my $jd = shift;
-    my ($ye, $mo, $da) = jd2cal($jd);
-    my ($ho, $mi, $se) = hms( frac($da) * 24 );
-    my $s = sprintf(
-        '%d-%02d-%02d %02d:%02d:%02d', $ye, $mo, $da, $ho, $mi, int($se)
-    );
-    return Time::Piece->strptime($s, '%F %T')
-}
-
-sub parse_datetime {
-    my ($mode, $value) = @_;
-    given ( $mode ) {
-        when ('DT') {
-            return localtime->strptime($value, '%Y-%m-%d %H:%M Z');
-        }
-        when ('JD') {
-            return jd_to_timepiece( $value )
-        }
-    }
-    die "Unknown datetime mode: $mode"
+sub print_data {
+    my ($title, $data) = @_;
+    print colored( sprintf('%-20s', $title), 'white' );
+    say colored( ": $data", 'bright_yellow');
 }
 
 
 # Parse options and print usage if there is a syntax error,
 # or if usage was explicitly requested.
 GetOptions(
-    'help|?'      => \$help,
-    'man'         => \$man,
-    'datetime:s'  => \%datetime,
-    'place:s'     => \%place,
-    'dt!'         => \$use_dt
+    'help|?'     => \$help,
+    'man'        => \$man,
+    'time:s'     => \$time,
+    'place:s{2}' => \@place,
+    'dt!'        => \$use_dt
 
 ) or pod2usage(2);
 
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
 
+my $local = parse_datetime($time);
+print_data('Local Time', $local->strftime('%F %T %Z'));
+my $utc;
+if ($local->time_zone ne 'UTC') {
+    $utc   = $local->clone->set_time_zone('UTC');
+    print_data('Universal Time', $utc->strftime('%F %T'));
+} else {
+    $utc = $local;
+}
+print_data('Julian Day', sprintf('%.6f', $utc->jd));
+
+my $t = jd_cent($utc->jd);
+if ($use_dt) {
+    # Universal -> Dynamic Time
+    my $delta_t = delta_t($utc->jd);
+    print_data('Delta-T', sprintf('%05.2fs.', $delta_t));
+    $t += $delta_t / $SEC_PER_CEN;
+}
 
 
-my $local = parse_datetime($datetime{mode}, $datetime{value});
-my $utc   = gmtime($local->epoch);
-print colored( sprintf('%-15s', 'Local Time:'), 'white' );
-say colored( $local->strftime('%F %R %Z'), 'bright_yellow');
-print colored( sprintf('%-15s', 'UTC:'), 'white' );
-say colored( $utc->strftime('%F %R %Z'), 'bright_yellow');
-print colored( sprintf('%-15s', 'Julian Day:'), 'white' );
-say colored( sprintf('%.6f', $utc->julian_day), 'bright_yellow');
 
+my ($lat, $lon) = parse_geocoords(@place);
+print_data('Place', format_geo($lat, $lon));
 
+# Local Sidereal Time
+my $lst = jd2lst($utc->jd, $lon);
+print_data('Sidereal Time', hms_str($lst));
 
 __END__
 
@@ -109,20 +101,18 @@ Prints a brief help message and exits.
 
 Prints the manual page and exits.
 
-=item B<--datetime>
+=item B<--time>
 
-Date and time. Contains 2 elements: B<value> and B<mode>, e.g.:
-C<--datetime value=2019-06-05T20:00:00 mode=UT>  The B<value>, depending on
-B<mode> option, may be either a I<calendar entry>, or a floating-point
-I<Julian Day>. The B<mode> is one of:
+Date and time, either a I<calendar entry> in format C<YYYY-MM-DD HH:MM Z> or
+C<YYYY-MM-DD HH:MM Z>, or a floating-point I<Julian Day>:
 
-=over
+  --datetime "2019-06-08 12:00 +0300"
+  --datetime date="2019-06-08 09:00 UTC"
+  --datetime date=2458642.875 mode=JD
 
-=item * B<DT> (default) — date and time in ISO format C<"YYYY-MM-DDTHH:MM Z">
-
-=item * B<JD> — I<Standard Julian Date>
-
-=back
+Calendar entries must be enclosed in quotes. Optional B<"Z"> stands for time
+zone, short name or offset from UTC. C<"+00300"> in the example above means
+I<"3 hours eastward">.
 
 =item B<--place> — the observer's location. Contains 3 elements: B<name>, B<lat>
 and B<lon>, e.g.: C<--place name="London, UK" lat=51N30 lon=000W07>.

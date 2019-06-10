@@ -1,44 +1,74 @@
 package Astro::Montenbruck::Helpers;
-
+use 5.22.0;
 use strict;
 use warnings;
 
 use Exporter qw/import/;
-
+use POSIX qw/setlocale locale_h/;
+use Readonly;
+use DateTime;
+use DateTime::TimeZone;
+use DateTime::Format::Strptime qw/strptime/;
+use Astro::Montenbruck::MathUtils qw/ddd/;
 
 our $VERSION = 0.01;
 
-use Readonly;
+our @EXPORT_OK = qw/parse_datetime parse_geocoords dmsz_str dms_or_dec_str
+  dmsdelta_str hms_str format_geo @ZODIAC $LOCALE/;
+
+Readonly::Array our @DATETIME_PATTERNS => (
+  '%F %R %Z', '%F %R %z', '%F %R',
+  '%F %T %Z', '%F %T %z', '%F %T',
+);
 
 Readonly::Array our @ZODIAC =>
   qw/Aries Taurus Gemini Cancer Leo Virgin Libra Scorpio
   Sagittarius Capricorn Aquarius Pisces/;
 
-our @EXPORT_OK = qw/parse_geocoords dmsz_str dms_or_dec_str
-  dmsdelta_str hms_str format_geo @ZODIAC/;
+our $LOCALE = setlocale(LC_ALL);
 
 use Astro::Montenbruck::MathUtils qw/dms zdms frac/;
 
+
+sub parse_datetime {
+    my $s = shift;
+    my $dt = eval {
+        if ($s =~ /^\d+(\.\d+)?$/) {
+            DateTime->from_epoch(epoch => jd2unix($s))
+        } else {
+            my $res;
+            for my $p (@DATETIME_PATTERNS) {
+                $res = eval { strptime($p, $s) };
+                last unless $@
+            }
+            $res
+        }
+    };
+    die "Could not parse date & time '$s'" unless $dt;
+    $dt->set_locale($LOCALE);
+    if ($dt->time_zone->name eq 'floating') {
+        eval { $dt->set_time_zone('local') };
+        $dt->set_time_zone('UTC') if $@;
+    }
+    $dt
+}
+
 sub parse_geocoords {
-    my ( $lats, $lons ) = @_;
-    my ( $lat, $lon ) = (0, 0);
-    {
+$DB::single=1;
+    my ($lats, $lons) = $_[0] =~ /N|S/i ? @_ : @_[1, 0];
+    my $lat = eval {
         $lats =~ /^(\d+)(S|N)(\d+)$/i;
-        my $d = $1 or die 'Unexpected latitude degrees';
-        my $n = $2 or die 'Unexpected latitude direction';
-        my $m = $3 or die 'Unexpected latitude minutes';
-        $lat = $d + $m / 60;
-        $lat = -$lat if $n eq 'S';
-    }
-    {
+        my ($d, $n, $m) = ($1, $2, $3);
+        $d = -$d if uc $n eq 'S';
+        ddd($d, $m)
+    };
+    my $lon = eval {
         $lons =~ /^(\d+)(E|W)(\d+)$/i;
-        my $d = $1 or die 'Unexpected longitude degrees';
-        my $w = $2 or die 'Unexpected longitude direction';
-        my $m = $3 or die 'Unexpected longitude minutes';
-        $lon = $d + $m / 60;
-        $lon = -$lon if $w eq 'E';
-    }
-    $lat, $lon;
+        my ($d, $w, $m) = ($1, $2, $3);
+        $d = -$d if uc $w eq 'E';
+        ddd($d, $m)
+    };
+    $lat, $lon
 }
 
 sub dmsz_str {

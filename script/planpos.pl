@@ -3,7 +3,7 @@
 use 5.22.0;
 use strict;
 no warnings qw/experimental/;
-use feature qw/state/;
+use feature qw/state switch/;
 
 use utf8;
 use FindBin qw/$Bin/;
@@ -26,7 +26,6 @@ use Astro::Montenbruck::Helpers qw/
     parse_datetime parse_geocoords format_geo hms_str dms_or_dec_str dmsz_str
     hms_str $LOCALE/;
 
-
 my $man    = 0;
 my $help   = 0;
 my $use_dt = 1;
@@ -45,57 +44,113 @@ sub print_data {
     say colored( $data, 'bright_white');
 }
 
-sub convert_lambda {
-    my $dec = $format eq 'D';
-    my %actions = (
-        # ecliptic
-        1 => sub { dms_or_dec_str( $_[0], decimal => $dec ) },
-        # zodiac
-        2 => sub { dmsz_str( $_[0], decimal => $dec ) },
-        # equatorial, time units
-        3 => sub {
-            my ($lambda, $beta, $eps) = @_;
-            my ($alpha) = ecl2equ( $lambda, $beta, $eps );
-            hms_str( $alpha / 15, decimal => $dec )
-        },
-        # equatorial, angular units
-        4 => sub {
-            my ($lambda, $beta, $eps) = @_;
-            my ($alpha) = ecl2equ( $lambda, $beta, $eps );
-            hms_str( $alpha, decimal => $dec )
-        },
-        # horizontal, time units
-        5 => sub {
-            my ($lambda, $beta, $eps, $lst, $theta) = @_;
-            my ($alpha, $delta) = ecl2equ( $lambda, $beta, $eps );
-            my $h = $lst * 15 - $alpha; # hour angle, arc-degrees
-            my ( $az ) = equ2hor( $h, $delta, $theta);
-            hms_str( $az / 15, decimal => $dec )
-        },
-        # horizontal, angular units
-        6 => sub {
-            my ($lambda, $beta, $eps, $lst, $theta) = @_;
-            my ($alpha, $delta) = ecl2equ( $lambda, $beta, $eps );
-            my $h = $lst * 15 - $alpha; # hour angle, arc-degrees
-            my ( $az ) = equ2hor( $h, $delta, $theta);
-            dms_or_dec_str( $az, decimal => $dec );
-        },
-
-    );
-    $actions{$coords};
+sub ecliptic_to_horizontal {
+    my ($lambda, $beta, $eps, $lst, $theta) = @_;
+    my ($alpha, $delta) = ecl2equ( $lambda, $beta, $eps );
+    my $h = $lst * 15 - $alpha; # hour angle, arc-degrees
+    equ2hor( $h, $delta, $theta);
 }
 
+sub convert_lambda {
+    my ($target, $dec) = @_;
+
+    given ($target) {
+        sub { dms_or_dec_str( $_[0], decimal => $dec ) }
+            when 1;
+        sub { dmsz_str( $_[0], decimal => $dec ) }
+            when 2;
+        sub {
+            my ($alpha) = ecl2equ( @_[0..2] );
+            hms_str( $alpha / 15, decimal => $dec )
+        }   when 3;
+        sub {
+            my ($alpha) = ecl2equ( @_[0..2] );
+            dms_or_dec_str( $alpha, decimal => $dec )
+        }   when 4;
+        sub {
+            my ( $az ) = ecliptic_to_horizontal(@_);
+            hms_str( $az / 15, decimal => $dec )
+        }   when 5;
+        sub {
+            my ( $az ) = ecliptic_to_horizontal(@_);
+            dms_or_dec_str( $az, decimal => $dec )
+        }   when 6;
+    }
+}
+
+sub convert_beta {
+    my ($target, $dec) = @_;
+
+    my $format = sub {
+        dms_or_dec_str($_[0], decimal => $dec, places => 2, sign => 1)
+    };
+
+    given( $target ) {
+        sub {  $format->( $_[1] ) }
+            when [1, 2];
+        sub {
+            my ($alpha, $delta) = ecl2equ( @_[0..2] );
+            $format->( $delta )
+        }  when [3, 4];
+        sub {
+            my ( $az, $alt ) = ecliptic_to_horizontal(@_);
+            $format->( $alt )
+        }  when [5, 6];
+    }
+}
 
 sub print_position {
     my ($id, $lambda, $beta, $delta, $motion, $obliq, $lst, $lat) = @_;
+    my $decimal = uc $format eq 'D';
 
-    state $convert_lambda = convert_lambda();
+    state $convert_lambda = convert_lambda($coords, $decimal);
+    state $convert_beta   = convert_beta($coords, $decimal);
+    state $format_motion  = sub {
+        dms_or_dec_str($_[0], decimal => uc $format eq 'D', places => 2, sign => 1 );
+    };
 
     print colored( sprintf('%-10s', $id), 'white' );
-    print colored( convert_lambda->($lambda, $beta, $obliq, $lst, $lat), 'bright_yellow' );
-
-
+    print colored( $convert_lambda->($lambda, $beta, $obliq, $lst, $lat), 'bright_yellow' );
+    print "   ";
+    print colored( $convert_beta->($lambda, $beta, $obliq, $lst, $lat), 'bright_yellow' );
+    print "   ";
+    print colored( sprintf( '%07.4f', $delta ), 'bright_yellow' );
+    print "   ";
+    print colored( $format_motion->($motion), 'bright_yellow' );
     print "\n";
+}
+
+sub print_header {
+    my $target = shift;
+    my $tmpl;
+    my @titles;
+    given ($target) {
+        when (1) {
+            $tmpl = '%-7s   %-11s   %-10s  %-10s %-10s';
+            @titles = qw/planet lambda beta dist motion/
+        }
+        when (2) {
+            $tmpl = '%-7s   %-11s   %-10s  %-10s %-10s';
+            @titles = qw/planet zodiac beta dist motion/
+        }
+        when (3) {
+            $tmpl = '%-7s   %-9s   %-10s  %-10s %-10s';
+            @titles = qw/planet alpha delta dist motion/
+        }
+        when (4) {
+            $tmpl = '%-7s   %-11s   %-10s  %-10s %-10s';
+            @titles = qw/planet alpha delta dist motion/
+        }
+        when (5) {
+            $tmpl = '%-7s   %-10s  %-9s   %-8s   %-10s';
+            @titles = qw/planet azimuth altitude dist motion/
+        }
+        when (6) {
+            $tmpl = '%-7s   %-11s   %-9s   %-8s   %-10s';
+            @titles = qw/planet azimuth altitude dist motion/
+        }
+    }
+    say colored( sprintf($tmpl, @titles), 'white    ' )
 }
 
 
@@ -117,7 +172,6 @@ pod2usage(-verbose => 2) if $man;
 
 
 die "Unknown coordinates format: \"$format\"!" unless $format =~ /^D|S$/i;
-
 
 my $local = parse_datetime($time);
 print_data('Local Time', $local->strftime('%F %T %Z'));
@@ -159,6 +213,7 @@ print_data(
 );
 print "\n";
 
+print_header($coords);
 find_positions(
     $t,
     \@PLANETS,

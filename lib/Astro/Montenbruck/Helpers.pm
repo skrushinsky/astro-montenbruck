@@ -53,7 +53,6 @@ sub parse_datetime {
 }
 
 sub parse_geocoords {
-$DB::single = 1;
     for (@_) {
         die "Unsupported geo-coordinates format: $_" unless /^\d+[NSWE]\d+$/i
     }

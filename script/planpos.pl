@@ -7,7 +7,7 @@ use feature qw/state switch/;
 
 use utf8;
 use FindBin qw/$Bin/;
-use lib ("$Bin/../lib");
+use lib $Bin;
 use Getopt::Long qw/GetOptions/;
 use Pod::Usage qw/pod2usage/;
 use DateTime;
@@ -22,7 +22,7 @@ use Astro::Montenbruck::CoCo qw/:all/;
 use Astro::Montenbruck::NutEqu qw/obliquity/;
 use Astro::Montenbruck::Ephemeris qw/find_positions/;
 use Astro::Montenbruck::Ephemeris::Planet qw/@PLANETS/;
-use Astro::Montenbruck::Helpers qw/
+use Helpers qw/
     parse_datetime parse_geocoords format_geo hms_str dms_or_dec_str dmsz_str
     hms_str $LOCALE/;
 

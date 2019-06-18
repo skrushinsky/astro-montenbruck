@@ -284,7 +284,7 @@ adjusted, due to irregularities in the Earth's rotation), I<TDT> is a uniform
 time scale which is needed as an argument for mathematical theories of celestial
 movements.
 
-Formulae used by L</delta_t|delta_t( $jd )> subroutine, are based on NASA Technical
+Formulae used by L</delta_t( $jd )> subroutine, are based on NASA Technical
 Publication I<"Five Millennium Canon of Solar Eclipses: -1999 to +3000">.
 They are valid for any time during the interval 2000 B.C. to 3000 A.D. See
 L<NASA Eclipse web site|http://eclipse.gsfc.nasa.gov/SEcat5/deltatpoly.html">.

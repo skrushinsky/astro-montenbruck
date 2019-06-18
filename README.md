@@ -65,13 +65,13 @@ Documentation files will be installed to **docs/** directory.
 To display current planetary positions, type:
 
 ```
-$ perl script/ephemeris.pl
+$ perl script/planpos.pl
 ```
 
 For list of available options. type:
 
 ```
-$ perl script/ephemeris.pl -h
+$ perl script/planpos.pl --help
 ```
 
 

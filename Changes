@@ -1,2 +1,5 @@
 Revision history for AstroScript
 
+2019-06-18 - script ephemeris.pl replaced with planpos.pl.
+             floating point error in tests fixed.
+             Helpers module moved from 'lib' to 'script'

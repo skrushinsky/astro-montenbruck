@@ -16,7 +16,6 @@ lib/Astro/Montenbruck/Ephemeris/Planet/Saturn.pm
 lib/Astro/Montenbruck/Ephemeris/Planet/Sun.pm
 lib/Astro/Montenbruck/Ephemeris/Planet/Uranus.pm
 lib/Astro/Montenbruck/Ephemeris/Planet/Venus.pm
-lib/Astro/Montenbruck/Helpers.pm
 lib/Astro/Montenbruck/MathUtils.pm
 lib/Astro/Montenbruck/NutEqu.pm
 lib/Astro/Montenbruck/Time.pm
@@ -29,10 +28,10 @@ META.yml
 README
 README.md
 script/createdocs.pl
-script/ephemeris.pl
+script/Helpers.pm
+script/planpos.pl
 script/simple_ephem.pl
 script/test_all.pl
-script/usecase.pl
 t/00-load.t
 t/05-manifest.t
 t/10-math.t
@@ -43,6 +42,5 @@ t/15-ephemeris.t
 t/19650201.txt
 t/20-deltat.t
 t/25-nutequ.t
-t/40-helpers.t
 t/pod-coverage.t
 t/pod.t

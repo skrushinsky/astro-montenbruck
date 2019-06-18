@@ -1,4 +1,4 @@
-package Astro::Montenbruck::Helpers;
+package Helpers;
 use 5.22.0;
 use strict;
 use warnings;
@@ -9,10 +9,10 @@ use Readonly;
 use DateTime;
 use DateTime::TimeZone;
 use DateTime::Format::Strptime qw/strptime/;
-use Astro::Montenbruck::MathUtils qw/ddd/;
+use Astro::Montenbruck::MathUtils qw/ddd dms zdms frac/;
 use Astro::Montenbruck::Time qw/jd2unix/;
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 our @EXPORT_OK = qw/parse_datetime parse_geocoords dmsz_str dms_or_dec_str
   dmsdelta_str hms_str format_geo @ZODIAC $LOCALE/;
@@ -27,8 +27,6 @@ Readonly::Array our @ZODIAC =>
   Sagittarius Capricorn Aquarius Pisces/;
 
 our $LOCALE = setlocale(LC_TIME);
-use Astro::Montenbruck::MathUtils qw/dms zdms frac/;
-
 
 sub parse_datetime {
     my $s = shift;

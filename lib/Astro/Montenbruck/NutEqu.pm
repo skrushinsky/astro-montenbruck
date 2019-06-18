@@ -96,6 +96,8 @@ Given time in Julian centuries since J200, return delta-psi and delta-eps.
 
 =item * B<$t> — time in Julian centuries since J2000: C<(JD-2451545.0)/36525.0>
 
+=back
+
 =head3 Returns
 
 C<($delta_psi, $delta_eps)>, in arc-degrees.
@@ -110,6 +112,8 @@ Returns function for transforming of mean to true coordinates.
 =over
 
 =item * B<$t> — time in Julian centuries since J2000: C<(JD-2451545.0)/36525.0>
+
+=back
 
 =head3 Returns
 

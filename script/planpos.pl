@@ -121,33 +121,40 @@ sub print_position {
 }
 
 sub print_header {
-    my $target = shift;
+    my ($target, $format) = @_;
+    my $fmt = uc $format;
     my $tmpl;
     my @titles;
     given ($target) {
         when (1) {
-            $tmpl = '%-7s   %-11s   %-10s  %-10s %-10s';
+            $tmpl = $fmt eq 'S' ? '%-7s   %-11s   %-10s  %-10s %-10s'
+                                : '%-7s   %-8s   %-7s  %-10s %-10s';
             @titles = qw/planet lambda beta dist motion/
         }
         when (2) {
-            $tmpl = '%-7s   %-11s   %-10s  %-10s %-10s';
+            $tmpl = $fmt eq 'S' ? '%-7s   %-11s   %-10s  %-10s %-10s'
+                                : '%-7s   %-10s   %-7s  %-10s %-10s';
             @titles = qw/planet zodiac beta dist motion/
         }
         when (3) {
-            $tmpl = '%-7s   %-9s   %-10s  %-10s %-10s';
+            $tmpl = $fmt eq 'S' ? '%-7s   %-9s   %-10s  %-10s %-10s'
+                                : '%-7s   %-6s   %-7s  %-10s %-10s';
             @titles = qw/planet alpha delta dist motion/
         }
         when (4) {
-            $tmpl = '%-7s   %-11s   %-10s  %-10s %-10s';
+            $tmpl = $fmt eq 'S' ? '%-7s   %-11s   %-10s  %-10s %-10s'
+                                : '%-7s   %-8s   %-7s  %-10s %-10s';
             @titles = qw/planet alpha delta dist motion/
         }
         when (5) {
-            $tmpl = '%-7s   %-10s  %-9s   %-8s   %-10s';
-            @titles = qw/planet azimuth altitude dist motion/
+            $tmpl = $fmt eq 'S' ? '%-7s   %-10s  %-9s   %-8s   %-10s'
+                                : '%-7s   %-7s  %-6s   %-8s   %-10s';
+            @titles = qw/planet azim alt dist motion/
         }
         when (6) {
-            $tmpl = '%-7s   %-11s   %-9s   %-8s   %-10s';
-            @titles = qw/planet azimuth altitude dist motion/
+            $tmpl = $fmt eq 'S' ? '%-7s   %-11s   %-9s   %-8s   %-10s'
+                                : '%-7s   %-8s   %-6s   %-8s   %-10s';
+            @titles = qw/planet azim alt dist motion/
         }
     }
     say colored( sprintf($tmpl, @titles), 'white    ' )
@@ -182,7 +189,7 @@ if ($local->time_zone ne 'UTC') {
 } else {
     $utc = $local;
 }
-print_data('Julian Day', sprintf('%.6f', $utc->jd));
+print_data('Julian Day', sprintf('%.11f', $utc->jd));
 
 my $t = jd_cent($utc->jd);
 if ($use_dt) {
@@ -213,7 +220,7 @@ print_data(
 );
 print "\n";
 
-print_header($coords);
+print_header($coords, $format);
 find_positions(
     $t,
     \@PLANETS,
@@ -251,18 +258,20 @@ Prints the manual page and exits.
 
 =item B<--time>
 
-Date and time, either a I<calendar entry> in format C<YYYY-MM-DD HH:MM Z> or
+Date and time, either a I<calendar entry> in format C<YYYY-MM-DD HH:MM Z>, or
 C<YYYY-MM-DD HH:MM Z>, or a floating-point I<Julian Day>:
 
-  --datetime "2019-06-08 12:00 +0300"
-  --datetime date="2019-06-08 09:00 UTC"
-  --datetime date=2458642.875 mode=JD
+  --datetime="2019-06-08 12:00 +0300"
+  --datetime="2019-06-08 09:00 UTC"
+  --datetime=2458642.875
 
-Calendar entries must be enclosed in quotes. Optional B<"Z"> stands for time
-zone, short name or offset from UTC. C<"+00300"> in the example above means
-I<"3 hours eastward">.
+Calendar entries should be enclosed in quotation marks. Optional B<"Z"> stands for
+time zone, short name or offset from UTC. C<"+00300"> in the example above means
+I<"3 hours east of Greenwich">.
 
-=item B<--place> — the observer's location. Contains 2 elements:
+=item B<--place>
+
+The observer's location. Contains 2 elements, space separated, in any order:
 
 =over
 
@@ -272,7 +281,7 @@ I<"3 hours eastward">.
 
 =back
 
-E.g.: C<--place=51N28, 0W0> for I<Greenwich, UK>.
+E.g.: C<--place=51N28 0W0> for I<Greenwich, UK>.
 
 =item B<--coordinates> — type and format of coordinates to display:
 

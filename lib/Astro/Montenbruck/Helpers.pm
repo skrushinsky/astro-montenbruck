@@ -10,6 +10,7 @@ use DateTime;
 use DateTime::TimeZone;
 use DateTime::Format::Strptime qw/strptime/;
 use Astro::Montenbruck::MathUtils qw/ddd/;
+use Astro::Montenbruck::Time qw/jd2unix/;
 
 our $VERSION = 0.01;
 
@@ -43,7 +44,7 @@ sub parse_datetime {
             $res
         }
     };
-    die "Could not parse date & time '$s'" unless $dt;
+    die "Could not parse date & time '$s': $@" unless $dt;
     $dt->set_locale($LOCALE);
     if ($dt->time_zone->name eq 'floating') {
         eval { $dt->set_time_zone('local') };
@@ -111,7 +112,7 @@ sub hms_str {
     my $x = shift;
     my %arg = ( decimal => 0, @_ );
     $arg{decimal}
-      ? sprintf( '05.2f',          $x )
+      ? sprintf( '%05.2f',         $x )
       : sprintf( '%02d:%02d:%02d', dms($x) );
 }
 

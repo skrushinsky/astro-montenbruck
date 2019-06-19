@@ -26,23 +26,21 @@ use Helpers qw/
     parse_datetime parse_geocoords format_geo hms_str dms_or_dec_str dmsz_str
     hms_str $LOCALE/;
 
-my $man    = 0;
-my $help   = 0;
-my $use_dt = 1;
-my $time   = DateTime->now()->set_locale($LOCALE)->strftime('%F %T');
-my @place;
-my $format = 'S';
-my $coords = 1;
+my %DARK_THEME = (
+    data_row_title  => 'white',
+    data_row_data   => 'bright_white',
+    table_row_title => 'white',
+    table_row_data  => 'bright_yellow',
+    table_col_title => 'white'
+);
 
-sub print_data {
-    my ($title, $data) = @_;
-    print colored( sprintf('%-20s', $title), 'white' );
-    print colored(': ', 'white');
-    unless ($data =~ /^[-+]/) {
-        $data = " $data";
-    }
-    say colored( $data, 'bright_white');
-}
+my %LIGHT_THEME = (
+    data_row_title  => 'bright_blue',
+    data_row_data   => 'black',
+    table_row_title => 'bright_blue',
+    table_row_data  => 'black',
+    table_col_title => 'bright_blue'
+);
 
 sub ecliptic_to_horizontal {
     my ($lambda, $beta, $eps, $lst, $theta) = @_;
@@ -99,8 +97,19 @@ sub convert_beta {
     }
 }
 
+
+sub print_data {
+    my ($title, $data, $scheme) = @_;
+    print colored( sprintf('%-20s', $title), $scheme->{data_row_title} );
+    print colored(': ', $scheme->{data_row_title});
+    unless ($data =~ /^[-+]/) {
+        $data = " $data";
+    }
+    say colored( $data, $scheme->{data_row_data});
+}
+
 sub print_position {
-    my ($id, $lambda, $beta, $delta, $motion, $obliq, $lst, $lat) = @_;
+    my ($id, $lambda, $beta, $delta, $motion, $obliq, $lst, $lat, $format, $coords, $scheme) = @_;
     my $decimal = uc $format eq 'D';
 
     state $convert_lambda = convert_lambda($coords, $decimal);
@@ -109,19 +118,19 @@ sub print_position {
         dms_or_dec_str($_[0], decimal => uc $format eq 'D', places => 2, sign => 1 );
     };
 
-    print colored( sprintf('%-10s', $id), 'white' );
-    print colored( $convert_lambda->($lambda, $beta, $obliq, $lst, $lat), 'bright_yellow' );
+    print colored( sprintf('%-10s', $id), $scheme->{table_row_title} );
+    print colored( $convert_lambda->($lambda, $beta, $obliq, $lst, $lat), $scheme->{table_row_data} );
     print "   ";
-    print colored( $convert_beta->($lambda, $beta, $obliq, $lst, $lat), 'bright_yellow' );
+    print colored( $convert_beta->($lambda, $beta, $obliq, $lst, $lat), $scheme->{table_row_data} );
     print "   ";
-    print colored( sprintf( '%07.4f', $delta ), 'bright_yellow' );
+    print colored( sprintf( '%07.4f', $delta ), $scheme->{table_row_data} );
     print "   ";
-    print colored( $format_motion->($motion), 'bright_yellow' );
+    print colored( $format_motion->($motion), $scheme->{table_row_data} );
     print "\n";
 }
 
 sub print_header {
-    my ($target, $format) = @_;
+    my ($target, $format, $scheme) = @_;
     my $fmt = uc $format;
     my $tmpl;
     my @titles;
@@ -157,9 +166,17 @@ sub print_header {
             @titles = qw/planet azim alt dist motion/
         }
     }
-    say colored( sprintf($tmpl, @titles), 'white    ' )
+    say colored( sprintf($tmpl, @titles), $scheme->{table_col_title} )
 }
 
+my $man    = 0;
+my $help   = 0;
+my $use_dt = 1;
+my $time   = DateTime->now()->set_locale($LOCALE)->strftime('%F %T');
+my @place;
+my $format = 'S';
+my $coords = 1;
+my $theme  = 'dark';
 
 # Parse options and print usage if there is a syntax error,
 # or if usage was explicitly requested.
@@ -171,41 +188,49 @@ GetOptions(
     'dt!'           => \$use_dt,
     'format:s'      => \$format,
     'coordinates:i' => \$coords,
+    'theme:s'       => \$theme,
 
 ) or pod2usage(2);
 
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
 
+my $scheme = do {
+    given (lc $theme) {
+        \%DARK_THEME when 'dark';
+        \%LIGHT_THEME when 'light';
+        default { warn "Unknown theme: $theme. Using default (dark)"; \%DARK_THEME }
+    }
+};
 
 die "Unknown coordinates format: \"$format\"!" unless $format =~ /^D|S$/i;
 
 my $local = parse_datetime($time);
-print_data('Local Time', $local->strftime('%F %T %Z'));
+print_data('Local Time', $local->strftime('%F %T %Z'), $scheme);
 my $utc;
 if ($local->time_zone ne 'UTC') {
     $utc   = $local->clone->set_time_zone('UTC');
-    print_data('Universal Time', $utc->strftime('%F %T'));
+    print_data('Universal Time', $utc->strftime('%F %T'), $scheme);
 } else {
     $utc = $local;
 }
-print_data('Julian Day', sprintf('%.11f', $utc->jd));
+print_data('Julian Day', sprintf('%.11f', $utc->jd), $scheme);
 
 my $t = jd_cent($utc->jd);
 if ($use_dt) {
     # Universal -> Dynamic Time
     my $delta_t = delta_t($utc->jd);
-    print_data('Delta-T', sprintf('%05.2fs.', $delta_t));
+    print_data('Delta-T', sprintf('%05.2fs.', $delta_t), $scheme);
     $t += $delta_t / $SEC_PER_CEN;
 }
 
 push @place, ('51N28', '000W00') unless @place;
 my ($lat, $lon) = parse_geocoords(@place);
-print_data('Place', format_geo($lat, $lon));
+print_data('Place', format_geo($lat, $lon), $scheme);
 
 # Local Sidereal Time
 my $lst = jd2lst($utc->jd, $lon);
-print_data('Sidereal Time', hms_str($lst));
+print_data('Sidereal Time', hms_str($lst), $scheme);
 
 # Ecliptic obliquity
 my $obliq = obliquity($t);
@@ -216,18 +241,19 @@ print_data(
         places  => 2,
         sign    => 1,
         decimal => $format eq 'D'
-    )
+    ),
+    $scheme
 );
 print "\n";
 
-print_header($coords, $format);
+print_header($coords, $format, $scheme);
 find_positions(
     $t,
     \@PLANETS,
-    sub { print_position(@_, $obliq, $lst, $lat) },
+    sub { print_position(@_, $obliq, $lst, $lat, $format, $coords, $scheme) },
     with_motion => 1
 );
-
+print "\n";
 
 
 __END__
@@ -311,7 +337,22 @@ E.g.: C<--place=51N28 0W0> for I<Greenwich, UK>.
 
 =back
 
+=item B<--theme> color scheme:
+
+=over
+
+=item * B<dark>, default: color scheme for dark consoles
+
+=item * B<light> color scheme for light consoles
+
 =back
+
+
+
+=back
+
+
+
 
 =head1 DESCRIPTION
 

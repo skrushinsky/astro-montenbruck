@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
@@ -105,7 +105,7 @@ subtest 'Polynome' => sub {
                 ) * $t + $a[2]
             ) * $t + $a[1]
           ) * $t + $a[0];
-        cmp_ok( $x1, '==', $x0, 'Polynome algorithm' ) or diag("Expected: $x0, got: $x1");
+        delta_ok( $x1, $x0, 'Polynome algorithm' ) or diag("Expected: $x0, got: $x1");
     }
 };
 
@@ -114,13 +114,13 @@ subtest 'Normalization' => sub {
 
     my $got = to_range( 410.5, 360 );
     my $exp = 50.5;
-    cmp_ok($exp, '==', $got, "to_range" ) or diag("Expected: $exp, got: $got");
+    delta_ok($got, $exp, "to_range" ) or diag("Expected: $exp, got: $got");
 
     $got = reduce_deg(410.5);
-    cmp_ok($exp, '==', $got, "reduce_deg" ) or diag("Expected: $exp, got: $got");
+    delta_ok($got, $exp, "reduce_deg" ) or diag("Expected: $exp, got: $got");
 
     $got = reduce_rad( pi2 + pi );
-    cmp_ok(pi, '==', $got, "reduce_rad" ) or diag("Expected: PI, got: $got");
+    delta_ok($got, pi, "reduce_rad" ) or diag("Expected: PI, got: $got");
 };
 
 

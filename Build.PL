@@ -6,7 +6,7 @@ my $builder = Module::Build->new(
     license             => 'artistic_1',
     dist_author         => q{Sergey Krushinsky <krushi at cpan.org>},
     dist_version_from   => 'lib/Astro/Montenbruck.pm',
-    release_status      => 'testing',
+    release_status      => 'stable',
     configure_requires  => {
         'Module::Build' => '0',
     },

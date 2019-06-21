@@ -55,7 +55,7 @@ approximately the same as that found in astronomical yearbooks.
 
 =item * L<Astro::Montenbruck::CoCo> — Coordinates conversions.
 
-=item * L<Astro::Montenbruck::Nutation> — Nutation and obliquity of ecliptic.
+=item * L<Astro::Montenbruck::NutEqu> — Nutation and obliquity of ecliptic.
 
 =back
 

@@ -9,7 +9,7 @@ use Readonly;
 
 use Math::Trig qw/:pi deg2rad rad2deg/;
 #use Astro::Montenbruck::MathUtils qw/frac ARCS polynome/;
-use Astro::Montenbruck::Time qw/jd2lst jd2mjd mjd2jd cal2jd $J2000/;
+use Astro::Montenbruck::Time qw/jd2lst jd2mjd mjd2jd cal2jd $J2000 jd_cent/;
 use Astro::Montenbruck::Ephemeris::Planet::Sun;
 use Astro::Montenbruck::Ephemeris::Planet::Moon;
 use Astro::Montenbruck::CoCo qw/ecl2equ/;
@@ -27,6 +27,7 @@ Readonly our $EVT_SET  => 'set';
 sub _objpos {
     my ($obj, $t) = @_;
     my ($lambda, $beta) = $obj->position($t); # apparent geocentric ecliptical coordinates
+$DB::single = 1;
     my $eps = obliquity($t);
     ecl2equ($lambda, $beta, $eps);
 }
@@ -65,9 +66,11 @@ sub _quad {
 # Calculates sine of the altitude at hourly intervals.
 sub _sin_alt {
     my ($mjd, $lambda, $cphi, $sphi, $get_position) = @_;
-    my $t = ($mjd - 51544.5) / 36525;
+    my $jd = mjd2jd($mjd);
+    #my $t = ($mjd - 51544.5) / 36525;
+    my $t = jd_cent($jd);
     my ($ra, $de) = $get_position->($t);
-    my $tau = deg2rad(15 * (jd2lst(mjd2jd($mjd), $lambda) - $ra));
+    my $tau = deg2rad(15 * (jd2lst($jd, $lambda) - $ra));
     my $rde = deg2rad($de);
     $sphi * sin($rde) + $cphi * cos($rde) * cos($tau)
 }

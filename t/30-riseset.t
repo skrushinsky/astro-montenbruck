@@ -10,7 +10,7 @@ use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
 use Test::More;
 use Test::Number::Delta within => 1e-2;
-use Astro::Montenbruck::MathUtils qw/ddd/;
+use Astro::Montenbruck::MathUtils qw/ddd dms/;
 
 BEGIN {
 	use_ok( 'Astro::Montenbruck::RiseSet', qw/:all/ );
@@ -193,7 +193,9 @@ subtest 'Sun rise/set' => sub {
             my $exp = $case->{sun}->{rise};
             my $msg = sprintf('rise at %02d:%02d', @$exp);
             if ($got_rise) {
-                delta_ok($got_rise, ddd(@$exp), $msg);
+                my @got = dms($got_rise, 2);
+                delta_ok($got_rise, ddd(@$exp), $msg)
+                    or diag(sprintf('expected: %02d:%02d, got: %02d:%02d', @$exp, @got));
             } else {
                 fail($msg);
             }
@@ -202,7 +204,9 @@ subtest 'Sun rise/set' => sub {
             my $exp = $case->{sun}->{set};
             my $msg = sprintf('set at %02d:%02d', @$exp);
             if ($got_set) {
-                delta_ok($got_set, ddd(@$exp), $msg);
+                my @got = dms($got_set, 2);
+                delta_ok($got_set, ddd(@$exp), $msg)
+                    or diag(sprintf('expected: %02d:%02d, got: %02d:%02d', @$exp, @got));
             } else {
                 fail($msg);
             }

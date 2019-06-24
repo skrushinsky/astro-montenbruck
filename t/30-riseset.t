@@ -9,7 +9,7 @@ our $VERSION = 0.01;
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
 use Test::More;
-use Test::Number::Delta within => 1e-2;
+use Test::Number::Delta within => 0.1;
 use Astro::Montenbruck::MathUtils qw/ddd dms/;
 
 BEGIN {
@@ -31,8 +31,8 @@ my @cases = (
             set   => [17, 30],
         },
         twilight  => {
-            end   => [ 4,  3],
-            start => [18, 39],
+            rise  => [ 4,  3],
+            set   => [18, 39],
         }
     },
     {
@@ -46,8 +46,8 @@ my @cases = (
             set   => [17, 32],
         },
         twilight  => {
-            end   => [ 4,  1],
-            start => [18, 40],
+            rise  => [ 4,  1],
+            set   => [18, 40],
         }
     },
     {
@@ -61,8 +61,8 @@ my @cases = (
             set   => [17, 33],
         },
         twilight  => {
-            end   => [ 3, 59],
-            start => [18, 42],
+            rise  => [ 3, 59],
+            set   => [18, 42],
         }
     },
     {
@@ -76,13 +76,14 @@ my @cases = (
             set   => [17, 35],
         },
         twilight  => {
-            end   => [ 3, 56],
-            start => [18, 44],
+            rise  => [ 3, 56],
+            set   => [18, 44],
         }
     },
     {
         date      => [1989, 3, 27],
         moon      => {
+            rise  => [23, 34],
             set   => [ 6, 33],
         },
         sun       => {
@@ -90,14 +91,13 @@ my @cases = (
             set   => [17, 36],
         },
         twilight  => {
-            end   => [ 3, 54],
-            start => [18, 45],
+            rise  => [ 3, 54],
+            set   => [18, 45],
         }
     },
     {
         date      => [1989, 3, 28],
         moon      => {
-            rise  => [23, 34],
             set   => [ 7,  9],
         },
         sun       => {
@@ -105,8 +105,8 @@ my @cases = (
             set   => [17, 38],
         },
         twilight  => {
-            end   => [ 3, 52],
-            start => [18, 47],
+            rise  => [ 3, 52],
+            set   => [18, 47],
         }
     },
     {
@@ -120,8 +120,8 @@ my @cases = (
             set   => [17, 39],
         },
         twilight  => {
-            end   => [ 3, 50],
-            start => [18, 48],
+            rise  => [ 3, 50],
+            set   => [18, 48],
         }
     },
     {
@@ -135,8 +135,8 @@ my @cases = (
             set   => [17, 41],
         },
         twilight  => {
-            end   => [ 3, 48],
-            start => [18, 50],
+            rise  => [ 3, 48],
+            set   => [18, 50],
         }
     },
     {
@@ -150,8 +150,8 @@ my @cases = (
             set   => [17, 42],
         },
         twilight  => {
-            end   => [ 3, 45],
-            start => [18, 52],
+            rise  => [ 3, 45],
+            set   => [18, 52],
         }
     },
     {
@@ -165,20 +165,19 @@ my @cases = (
             set   => [17, 43],
         },
         twilight  => {
-            end   => [ 3, 43],
-            start => [18, 53],
+            rise  => [ 3, 43],
+            set   => [18, 53],
         }
     },
 );
 
 
-subtest 'Sun rise/set' => sub {
+sub _check_rs {
+    my ($obj, $func) = @_;
 
     for my $case (@cases) {
-        my @hm = @{$case->{sun}->{rise}};
-        my $exp = $hm[0] + $hm[1] / 60;
         my ($got_rise, $got_set);
-        rs_sun(
+        $func->(
             @{$case->{date}}, $lng, $lat,
             on_event => sub {
                 my ($evt, $ut) = @_;
@@ -189,9 +188,9 @@ subtest 'Sun rise/set' => sub {
                 }
             }
         );
-        if ( exists $case->{sun}->{rise} ) {
-            my $exp = $case->{sun}->{rise};
-            my $msg = sprintf('rise at %02d:%02d', @$exp);
+        if ( exists $case->{$obj}->{rise} ) {
+            my $exp = $case->{$obj}->{rise};
+            my $msg = sprintf('rise: %d-%02d-%02d %02d:%02d', @{$case->{date}}, @$exp);
             if ($got_rise) {
                 my @got = dms($got_rise, 2);
                 delta_ok($got_rise, ddd(@$exp), $msg)
@@ -200,9 +199,9 @@ subtest 'Sun rise/set' => sub {
                 fail($msg);
             }
         }
-        if ( exists $case->{sun}->{set} ) {
-            my $exp = $case->{sun}->{set};
-            my $msg = sprintf('set at %02d:%02d', @$exp);
+        if ( exists $case->{$obj}->{set} ) {
+            my $exp = $case->{$obj}->{set};
+            my $msg = sprintf('set: %d-%02d-%02d %02d:%02d', @{$case->{date}}, @$exp);
             if ($got_set) {
                 my @got = dms($got_set, 2);
                 delta_ok($got_set, ddd(@$exp), $msg)
@@ -212,6 +211,22 @@ subtest 'Sun rise/set' => sub {
             }
         }
     }
+
+}
+
+
+subtest 'Sun rise/set' => sub {
+    _check_rs('sun', \&rs_sun);
+    done_testing();
+};
+
+subtest 'Moon rise/set' => sub {
+    _check_rs('moon', \&rs_moon);
+    done_testing();
+};
+
+subtest 'Nautical twilight' => sub {
+    _check_rs('twilight', \&twilight);
     done_testing();
 };
 

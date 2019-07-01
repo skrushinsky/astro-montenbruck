@@ -174,21 +174,17 @@ sub _sun_moon_rs {
 }
 
 sub rs_sun {
-
     state $sun = Astro::Montenbruck::Ephemeris::Planet::Sun->new();
     # sunrise at h = -50'
     _sun_moon_rs(
         @_,
-
         get_position => sub { _objpos($sun, $_[0]) },
-        #get_position => sub { mini_sun( $_[0] ) },
         sin_h0       => $SIN_H0_SUN
     );
 }
 
 sub rs_moon {
     state $moo = Astro::Montenbruck::Ephemeris::Planet::Moon->new();
-
     # moonrise at h = 8'
     _sun_moon_rs(
         @_,

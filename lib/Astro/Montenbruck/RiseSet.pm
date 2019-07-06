@@ -12,18 +12,19 @@ use Memoize;
 memoize qw/_get_obliquity/;
 
 use Math::Trig qw/:pi deg2rad rad2deg atan acos/;
-use Astro::Montenbruck::MathUtils qw/frac/;
-use Astro::Montenbruck::Time qw/cal2jd jd_cent/;
+use Astro::Montenbruck::MathUtils qw/frac to_range diff_angle reduce_deg/;
+use Astro::Montenbruck::Time qw/cal2jd jd_cent jd2gst $SEC_PER_DAY/;
 use Astro::Montenbruck::Time::Sidereal qw/ramc/;
+use Astro::Montenbruck::Time::DeltaT qw/delta_t/;
 use Astro::Montenbruck::Ephemeris::Planet::Sun;
 use Astro::Montenbruck::Ephemeris::Planet::Moon;
-use Astro::Montenbruck::CoCo qw/ecl2equ/;
+use Astro::Montenbruck::CoCo qw/ecl2equ equ2hor/;
 use Astro::Montenbruck::NutEqu qw/obliquity/;
 use Astro::Montenbruck::Ephemeris qw/iterator/;
 use Astro::Montenbruck::Ephemeris::Planet qw/:ids/;
 
 our %EXPORT_TAGS = ( all => [
-       qw/rs_sun rs_moon twilight rst_event
+       qw/rs_sun rs_moon twilight rst_event rst_event_meeus
           $EVT_RISE $EVT_SET $EVT_TRANSIT $STATE_CIRCUMPOLAR $STATE_NEVER_RISES/
     ],
 );
@@ -47,6 +48,7 @@ Readonly our $SIN_H0_PLA => sin( deg2rad(-34 / 60) );
 Readonly our $SIN_H0_TWL => sin( deg2rad(-12) );
 
 Readonly our $SID => 0.9972696; # Conversion sidereal/solar time
+Readonly our $K1  => deg2rad(360.985647);
 
 sub mini_sun {
     my $t  = shift;
@@ -173,6 +175,15 @@ sub _sun_moon_rs {
     $arg{on_noevent}->($above) unless ( $rise_found || $set_found );
 }
 
+sub _get_equatorial {
+    my ($id, $jd) = @_;
+    my $t = jd_cent($jd);
+    my $iter = iterator( $t, [$id] );
+    my $res = $iter->();
+    my @ecl = @{$res->[1]}[0..1];
+    map{ deg2rad($_) } ecl2equ( @ecl, _get_obliquity($t) );
+};
+
 sub rs_sun {
     state $sun = Astro::Montenbruck::Ephemeris::Planet::Sun->new();
     # sunrise at h = -50'
@@ -215,11 +226,8 @@ sub rst_event {
     my $lst00h = deg2rad(ramc( $jd, $lam ));
 
     my $get_position = sub {
-        my $t = shift;
-        my $iter = iterator( $t, [$id] );
-        my $res = $iter->();
-        my @ecl = @{$res->[1]}[0..1];
-        map{ deg2rad($_) } ecl2equ( @ecl, _get_obliquity($t) );
+        my $j = shift;
+        _get_equatorial($id, $j)
     };
 
     my $sin_h0 = do {
@@ -231,8 +239,8 @@ sub rst_event {
     };
 
     # Compute geocentric planetary position at 0h and 24h local time
-    my ($ra00h, $de00h) = $get_position->($t0);
-    my ($ra24h, $de24h) = $get_position->($t0 + 1 / 36525);
+    my ($ra00h, $de00h) = $get_position->($jd);
+    my ($ra24h, $de24h) = $get_position->($jd + 1);
     # Generate continuous right ascension values in case of jumps between 0h and 24h
     $ra24h += pi2 if ($ra00h - $ra24h >  pi);
     $ra00h += pi2 if ($ra00h - $ra24h < -pi);
@@ -287,4 +295,113 @@ sub rst_event {
         until ( abs($delta_lt) <= 0.008 );
         $arg{on_event}->($lt);
     }
+}
+
+
+# Interpolate from three equally spaced tabular angular values.
+#
+# [Meeus-1998; equation 3.3]
+#
+# This version is suitable for interpolating from a table of
+# angular values which may cross the origin of the circle,
+# for example: 359 degrees...0 degrees...1 degree.
+#
+# Arguments:
+#   - `n` : the interpolating factor, must be between -1 and 1
+#   - `y` : a sequence of three values
+#
+# Results:
+#   - the interpolated value of y
+
+sub _interpolate_angle3 {
+    my ($n, $y) = @_;
+    die "interpolating factor $n out of range" unless (-1 < $n) && ($n < 1);
+
+    my $a = diff_angle($y->[0], $y->[1], 'radians');
+    my $b = diff_angle($y->[1], $y->[2], 'radians');
+    my $c = diff_angle($a, $b, 'radians');
+    $y->[1] + $n / 2 * ($a + $b + $n * $c)
+}
+
+# Interpolate from three equally spaced tabular values.
+#
+# [Meeus-1998; equation 3.3]
+#
+# Parameters:
+#   - `n` : the interpolating factor, must be between -1 and 1
+#   - `y` : a sequence of three values
+#
+# Results:
+#   - the interpolated value of y
+sub _interpolate3 {
+    my ($n, $y) = @_;
+    die "interpolating factor out of range $n" unless (-1 < $n) && ($n < 1);
+
+    my $a = $y->[1] - $y->[0];
+    my $b = $y->[2] - $y->[1];
+    my $c = $b - $a;
+    $y->[1] + $n / 2 * ($a + $b + $n * $c)
+}
+
+
+sub rst_event_meeus {
+    my %arg = @_;
+    my ($h, $phi, $lambda) = map{ deg2rad($arg{$_}) }  qw/h phi lambda/;
+    my $delta = $arg{delta} || 1 / 1440;
+    my $jdm   = cal2jd( $arg{year}, $arg{month}, int($arg{day}) );
+    my $gstm  = deg2rad(ramc($jdm, 0));
+    my @equ   = map{ [ _get_equatorial($arg{planet}, $jdm + $_) ] } (-1..1);
+    my @alpha = map{ $_->[0] } @equ;
+    my @delta = map{ $_->[1] } @equ;
+    my $cos_h = (sin($h) - sin($phi) * sin($delta[1])) / (cos($phi) * cos($delta[1]));
+    my $dt    = delta_t($jdm) / $SEC_PER_DAY;
+
+    sub {
+        my $evt = shift;
+        my %arg = (max_iter => 20, @_);
+
+        if ($cos_h < -1) {
+            $arg{on_noevent}->($STATE_CIRCUMPOLAR);
+            return
+        } elsif ($cos_h > 1) {
+            $arg{on_noevent}->($STATE_NEVER_RISES);
+            return
+        }
+        my $h0  = acos($cos_h);
+        my $m0 = ($alpha[1] + $lambda - $gstm) / pi2;
+        my $m  = do {
+            given($evt) {
+                $m0             when $EVT_TRANSIT;
+                $m0 - $h0 / pi2 when $EVT_RISE;
+                $m0 + $h0 / pi2 when $EVT_SET;
+            }
+        };
+        if ($m < 0) {
+            $m++;
+        } elsif ($m > 1) {
+            $m--;
+        }
+        die "m is out of range: $m" unless (0 <= $m) && ($m <= 1);
+
+        for (0..$arg{max_iter}) {
+            my $m0 = $m;
+            my $theta0 = deg2rad(reduce_deg(rad2deg($gstm) + 360.985647 * $m));
+            my $n = $m + $dt;
+$DB::single = 1 if $evt eq $EVT_TRANSIT;
+            my $ra = _interpolate_angle3($n, \@alpha);
+            my $de = _interpolate3($n, \@delta);
+            my $h1 = $theta0 - $lambda - $ra;
+            $h1 = diff_angle(0, $h1, 'radians');
+
+            my ($az, $alt) = map {deg2rad($_) } equ2hor( map{ rad2deg($_)} ($h1, $de, $phi) );
+            my $dm = ($alt - $h) / (pi2 * cos($de) * cos($phi) * sin($h1));
+            $m += $dm;
+            if (abs($m - $m0) < $delta) {
+                $arg{on_event}->($jdm + $m);
+                return;
+            }
+        }
+        die 'bailout!';
+    }
+
 }

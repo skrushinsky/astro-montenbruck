@@ -10,7 +10,7 @@ use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
 use Test::More;
 use Test::Number::Delta within => 0.1;
-use Astro::Montenbruck::MathUtils qw/ddd dms/;
+use Astro::Montenbruck::MathUtils qw/ddd dms frac/;
 use Astro::Montenbruck::Ephemeris::Planet qw/:ids/;
 BEGIN {
     use_ok( 'Astro::Montenbruck::RiseSet', qw/:all/ );
@@ -416,5 +416,42 @@ subtest 'Compare Sun/Moon rise/set methods' => sub {
     }
 };
 
+
+subtest 'Meeus' => sub {
+    my %cases = (
+        $EVT_RISE    => ddd(12, 25),
+        $EVT_TRANSIT => ddd(19, 41),
+        $EVT_SET     => ddd( 2, 55)
+    );
+
+    my $func = rst_event_meeus(
+        planet => $VE,
+        year   => 1988,
+        month  => 3,
+        day    => 20,
+        h      => -0.5667,
+        phi    => 42.3333,
+        lambda => 71.0833
+    );
+    for my $evt ($EVT_RISE, $EVT_SET, $EVT_TRANSIT) {
+        my $case = $cases{$evt};
+        $func->(
+            $evt,
+            on_event => sub {
+                my $j = shift;
+                my $ut = frac($j - 0.5) * 24;
+                delta_ok(
+                    $ut,
+                    $case,
+                    sprintf('Venus %-12s at %02d:%02d', $evt, dms($case, 2))
+                )
+            },
+            on_noevent => sub {
+                fail "Event expected"
+            }
+        );
+    }
+    done_testing();
+};
 
 done_testing();

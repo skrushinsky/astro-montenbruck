@@ -365,11 +365,11 @@ Returns function for calculating time of given event  L</See Events|Events>.
 
 =item * B<planet>
 
-Celestial body identifier, one of constants defined in L<Astroi::Montenbruck::Ephemeris::Planet>.
+Celestial body identifier, one of constants defined in L<Astro::Montenbruck::Ephemeris::Planet>.
 
 =item * B<year> — year, astronomical, zero-based
 
-=item * B<year> — month, 1..12
+=item * B<month> — month, 1..12
 
 =item * B<day> — day, 1..31
 

@@ -25,7 +25,7 @@ our %EXPORT_TAGS = (
     all => [
         qw/rst_event twilight
           $EVT_RISE $EVT_SET $EVT_TRANSIT $STATE_CIRCUMPOLAR $STATE_NEVER_RISES
-          $TWILIGHT_CIVIL $TWILIGHT_ASTRO $TWILIGHT_NAUTI/
+          $TWILIGHT_CIVIL $TWILIGHT_ASTRO $TWILIGHT_NAUTICAL/
     ],
 );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
@@ -38,17 +38,17 @@ Readonly our $EVT_TRANSIT => 'transit';
 Readonly our $STATE_CIRCUMPOLAR => 'circumpolar';
 Readonly our $STATE_NEVER_RISES => 'never rises';
 
-Readonly our $TWILIGHT_CIVIL => 'civil';
-Readonly our $TWILIGHT_ASTRO => 'astronomical';
-Readonly our $TWILIGHT_NAUTI => 'nautical';
+Readonly our $TWILIGHT_CIVIL    => 'civil';
+Readonly our $TWILIGHT_ASTRO    => 'astronomical';
+Readonly our $TWILIGHT_NAUTICAL => 'nautical';
 
 Readonly our $H0_SUN => -50 / 60;
 Readonly our $H0_MOO =>   8 / 60;
 Readonly our $H0_PLA => -34 / 60;
 Readonly::Hash our %H0_TWL => (
-    $TWILIGHT_CIVIL => -6,
-    $TWILIGHT_ASTRO => -18,
-    $TWILIGHT_NAUTI => -12
+    $TWILIGHT_CIVIL    => -6,
+    $TWILIGHT_ASTRO    => -18,
+    $TWILIGHT_NAUTICAL => -12
 );
 
 sub _get_obliquity { obliquity( $_[0] ) }
@@ -213,15 +213,23 @@ sub rst_event {
 }
 
 sub twilight {
-    my %arg = (type => $TWILIGHT_NAUTI, @_);
-    _rst_function(
-        h        => $H0_TWL{$arg{type}},
+    my %arg = (type => $TWILIGHT_NAUTICAL, @_);
+    my $type = delete $arg{type};
+
+    my $func = _rst_function(
+        h        => $H0_TWL{$type},
         pos_func => sub {
             my $jd = shift;
             _get_equatorial( $SU, $jd )
         },
         %arg
     );
+    # Make sure the function receives proper arguments.
+    sub {
+        my $evt = shift;
+        die "\"$EVT_TRANSIT\" event is irrelevant here" if $evt eq $EVT_TRANSIT;
+        $func->($evt, @_)
+    }
 }
 
 
@@ -242,8 +250,7 @@ use Astro::Montenbruck::Ephemeris::Planet qw/:ids/;
 use Astro::Montenbruck::MathUtils qw/frac/;
 use Astro::Montenbruck::RiseSet', qw/:all/;
 
-# create function for calculating Moon rise for Munich, Germany,
-# on March 23, 1989.
+# create function for calculating Moon events for Munich, Germany, on March 23, 1989.
 my $func = rst_event(
     planet => $MO,
     year   => 1989,
@@ -253,9 +260,8 @@ my $func = rst_event(
     lambda => -11.6
 );
 
-# calculate rise
-# alternatively, use $EVT_SET for set, $EVT_TRANSIT for transit
-# as the first argument
+# calculate Moon rise. Alternatively, use $EVT_SET for set, $EVT_TRANSIT for
+# transit as the first argument
 $func->(
     $EVT_RISE,
     on_event => sub {
@@ -274,7 +280,7 @@ Version 0.01
 
 Rise, set and transit times of celestial bodies. The calculations are based on
 I<"Astronomical Algorythms" by Jean Meeus>. The same subject is discussed in
-Montenbruck & Phleger book, but Meeus's method is more general and consistent.
+I<Montenbruck & Phleger> book, but Meeus's method is more general and consistent.
 Unit tests use examples from the both sources.
 
 The general problem here is to find the instant of time at which a celestial
@@ -285,22 +291,24 @@ use average corrections to geometric altitudes:
 
 =over
 
-=item sunrise, sunset : B<-0°50'>
+=item * sunrise, sunset : B<-0°50'>
 
-=item moonrise, moonset : B<0°8'>
+=item * moonrise, moonset : B<0°8'>
 
-=item stars and planets : B<-0°34'>
+=item * stars and planets : B<-0°34'>
 
 =back
 
-The library also calculates the times of the beginning and end of twilight. The
-types of twilight are:
+The library also calculates the times of the beginning and end of twilight.
+There are three types of twilight:
 
-=over I<astronomical>, when Sun altitude is B<-18°>
+=over
 
-=item I<nautical>, when Sun altitude is B<-12°>
+=item * I<astronomical>, when Sun altitude is B<-18°>
 
-=item I<civil>, when Sun altitude is B<-6°>
+=item * I<nautical>, when Sun altitude is B<-12°>
+
+=item * I<civil>, when Sun altitude is B<-6°>
 
 =back
 
@@ -310,62 +318,62 @@ types of twilight are:
 
 =over
 
-=item * L</rst_event(%args)>
+=item * L</rst_event( %args )>
 
-=item * L</twilight(%args)>
+=item * L</twilight( %args )>
 
 =back
 
 =head2 CONSTANTS
 
-=head3 Events
+=head3 EVENTS
 
 =over
 
-=item * $EVT_RISE — rise
+=item * C<$EVT_RISE> — rise
 
-=item * $EVT_SET — set
+=item * C<$EVT_SET> — set
 
-=item * $EVT_TRANSIT — transit (upper culmination)
+=item * C<$EVT_TRANSIT> — transit (upper culmination)
 
 =back
 
-=head3 States
+=head3 STATES
 
 =over
 
-=item * $STATE_CIRCUMPOLAR — always above the horizon
+=item * C<$STATE_CIRCUMPOLAR> — always above the horizon
 
-=item * $STATE_NEVER_RISES — always below the horizon
+=item * C<$STATE_NEVER_RISES> — always below the horizon
 
 =back
 
-=head3 Types of twilight
+=head3 TYPES OF TWILIGHT
 
 =over
 
-=item * $TWILIGHT_CIVIL — civil
+=item * C<$TWILIGHT_CIVIL> — civil
 
-=item * $TWILIGHT_ASTRO — astronomical
+=item * C<$TWILIGHT_ASTRO> — astronomical
 
-=item * $TWILIGHT_NAUTI — nautical
+=item * C<$TWILIGHT_NAUTICAL> — nautical
 
 =back
 
 
-=head1 SUBROUTINES/METHODS
+=head1 FUNCTIONS
 
-=head2 rst_event(%args)
+=head2 rst_event( %args )
 
-Returns function for calculating time of given event  L</See Events|Events>.
+Returns function for calculating time of event.
+See L</RISE/SET/TRANSIT EVENT FUNCTION> below.
 
-=head3 Arguments
+=head3 Named Arguments
 
 =over
 
-=item * B<planet>
-
-Celestial body identifier, one of constants defined in L<Astro::Montenbruck::Ephemeris::Planet>.
+=item * B<planet> — Celestial body identifier, one of constants defined in
+                   L<Astro::Montenbruck::Ephemeris::Planet>.
 
 =item * B<year> — year, astronomical, zero-based
 
@@ -379,8 +387,80 @@ Celestial body identifier, one of constants defined in L<Astro::Montenbruck::Eph
 
 =back
 
-=head3 Returns
+=head2 RISE/SET/TRANSIT EVENT FUNCTION
 
-Right Ascension of Meridian, arc-degrees
+    $func->( EVENT_TYPE, on_event => sub{ ... }, on_noevent => sub{ ... } );
+
+Its first argument, I<event type>, is one of C</$EVT_RISE>, C</$EVT_SET>, or
+C</$EVT_TRANSIT>, see L</EVENTS>. Named arguments are callback functions:
+
+=over
+
+=item *
+
+C<on_event> is called when the event time is determined. The argument is
+I<Standard Julian date> of the event.
+
+    on_event => sub { my $jd = shift; ... }
+
+=item *
+
+C<on_noevent> is called when the event never happens, either because the body
+never rises, or is circumpolar. The argument is respectively
+C</$STATE_NEVER_RISES> or C</$STATE_CIRCUMPOLAR>, see L</STATES>.
+
+    on_noevent => sub { my $state = shift; ... }
+
+=back
+
+=head2 twilight( %args )
+
+Function for calculating twilight. See L</TWILIGHT EVENT FUNCTION> below.
+
+=head3 Named Arguments
+
+=over
+
+=item * B<type> — type of twilight, C</$TWILIGHT_NAUTICAL>, C</$TWILIGHT_ASTRO>
+                  or C</$TWILIGHT_CIVIL>, see L</TYPES OF TWILIGHT>.
+
+=item * B<year> — year, astronomical, zero-based
+
+=item * B<month> — month, 1..12
+
+=item * B<day> — day, 1..31
+
+=item * B<phi> — geographic latitude, degrees, positive northward
+
+=item * B<lambda> — geographic longitude, degrees, positive westward
+
+=back
+
+=head2 TWILIGHT EVENT FUNCTION
+
+    $func->( EVENT_TYPE, on_event => sub{ ... }, on_noevent => sub{ ... } );
+
+Its first argument, I<event type>, is one of C</$EVT_RISE> or C</$EVT_SET>,
+meaning respectively I<beginning of the morning twilight> or
+I<end of the evening twilight>. Named arguments are callback functions:
+
+=over
+
+=item *
+
+C<on_event> is called when the event time is determined. The argument is
+I<Standard Julian date> of the event.
+
+    on_event => sub { my $jd = shift; ... }
+
+=item *
+
+C<on_noevent> is called when the event never happens, either because the body
+never rises, or is circumpolar. The argument is respectively
+L</$STATE_NEVER_RISES> or L</$STATE_CIRCUMPOLAR>.
+
+    on_noevent => sub { my $state = shift; ... }
+
+=back
 
 =cut

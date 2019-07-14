@@ -247,6 +247,20 @@ subtest 'Twilight, normal conditions' => sub {
             )
         }
     }
+
+    my $msg = "\"$EVT_TRANSIT\" event type for twilight raises exception";
+    eval {
+        twilight(
+            year   => 1989,
+            month  => 3,
+            day    => 23,
+            phi    => $lat,
+            lambda => $lng
+        )->($EVT_TRANSIT);
+        fail($msg);
+    };
+    ok($@ =~ /event is irrelevant here/, $msg);
+
     done_testing()
 };
 

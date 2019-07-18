@@ -7,7 +7,7 @@ use feature qw/state switch/;
 
 use utf8;
 use FindBin qw/$Bin/;
-use lib $Bin;
+use lib ("$Bin/lib", "$Bin/../lib");
 use Getopt::Long qw/GetOptions/;
 use Pod::Usage qw/pod2usage/;
 use DateTime;
@@ -25,22 +25,7 @@ use Astro::Montenbruck::Ephemeris::Planet qw/@PLANETS/;
 use Helpers qw/
     parse_datetime parse_geocoords format_geo hms_str dms_or_dec_str dmsz_str
     hms_str $LOCALE/;
-
-my %DARK_THEME = (
-    data_row_title  => 'white',
-    data_row_data   => 'bright_white',
-    table_row_title => 'white',
-    table_row_data  => 'bright_yellow',
-    table_col_title => 'white'
-);
-
-my %LIGHT_THEME = (
-    data_row_title  => 'bright_blue',
-    data_row_data   => 'black',
-    table_row_title => 'bright_blue',
-    table_row_data  => 'black',
-    table_col_title => 'bright_blue'
-);
+use Display qw/%LIGHT_THEME %DARK_THEME print_data/;
 
 sub ecliptic_to_horizontal {
     my ($lambda, $beta, $eps, $lst, $theta) = @_;
@@ -98,15 +83,7 @@ sub convert_beta {
 }
 
 
-sub print_data {
-    my ($title, $data, $scheme) = @_;
-    print colored( sprintf('%-20s', $title), $scheme->{data_row_title} );
-    print colored(': ', $scheme->{data_row_title});
-    unless ($data =~ /^[-+]/) {
-        $data = " $data";
-    }
-    say colored( $data, $scheme->{data_row_data});
-}
+
 
 sub print_position {
     my ($id, $lambda, $beta, $delta, $motion, $obliq, $lst, $lat, $format, $coords, $scheme) = @_;

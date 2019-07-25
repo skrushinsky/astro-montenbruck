@@ -8,11 +8,12 @@ use feature qw/switch state/;
 use Exporter qw/import/;
 use POSIX qw /fmod/;
 use Readonly;
+use List::Util qw/any/;
 use Memoize;
 memoize qw/_get_obliquity/;
 
 use Math::Trig qw/:pi deg2rad rad2deg acos/;
-use Astro::Montenbruck::MathUtils qw/frac to_range diff_angle reduce_deg/;
+use Astro::Montenbruck::MathUtils qw/frac to_range diff_angle reduce_deg reduce_rad/;
 use Astro::Montenbruck::Time qw/cal2jd jd_cent $SEC_PER_DAY/;
 use Astro::Montenbruck::Time::Sidereal qw/ramc/;
 use Astro::Montenbruck::Time::DeltaT qw/delta_t/;
@@ -24,30 +25,37 @@ use Astro::Montenbruck::Ephemeris::Planet qw/:ids/;
 our %EXPORT_TAGS = (
     all => [
         qw/rst_event twilight
-          $EVT_RISE $EVT_SET $EVT_TRANSIT $STATE_CIRCUMPOLAR $STATE_NEVER_RISES
-          $TWILIGHT_CIVIL $TWILIGHT_ASTRO $TWILIGHT_NAUTICAL/
+          $EVT_RISE $EVT_SET $EVT_TRANSIT
+          $STATE_CIRCUMPOLAR $STATE_NEVER_RISES
+          $TWILIGHT_CIVIL $TWILIGHT_ASTRO $TWILIGHT_NAUTICAL
+          @RS_EVENTS @TWILIGHT_TYPES/
     ],
 );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our $VERSION   = 0.01;
 
-Readonly our $EVT_RISE    => 'rise';
-Readonly our $EVT_SET     => 'set';
-Readonly our $EVT_TRANSIT => 'transit';
+Readonly our $EVT_RISE     => 'rise';
+Readonly our $EVT_SET      => 'set';
+Readonly our $EVT_TRANSIT  => 'transit';
+Readonly::Array our @RS_EVENTS => ($EVT_RISE, $EVT_TRANSIT, $EVT_SET);
 
 Readonly our $STATE_CIRCUMPOLAR => 'circumpolar';
 Readonly our $STATE_NEVER_RISES => 'never rises';
 
 Readonly our $TWILIGHT_CIVIL    => 'civil';
-Readonly our $TWILIGHT_ASTRO    => 'astronomical';
+#Readonly our $TWILIGHT_ASTRO    => 'astronomical';
 Readonly our $TWILIGHT_NAUTICAL => 'nautical';
-
+Readonly::Array our @TWILIGHT_TYPES    => (
+#    $TWILIGHT_ASTRO,
+    $TWILIGHT_CIVIL,
+    $TWILIGHT_NAUTICAL
+);
 Readonly our $H0_SUN => -50 / 60;
 Readonly our $H0_MOO =>   8 / 60;
 Readonly our $H0_PLA => -34 / 60;
 Readonly::Hash our %H0_TWL => (
     $TWILIGHT_CIVIL    => -6,
-    $TWILIGHT_ASTRO    => -18,
+#    $TWILIGHT_ASTRO    => -18,
     $TWILIGHT_NAUTICAL => -12
 );
 
@@ -111,6 +119,7 @@ sub _interpolate3 {
 sub _rst_function {
     my %arg = @_;
     my ( $h, $phi, $lambda ) = map { deg2rad( $arg{$_} ) } qw/h phi lambda/;
+
     my $sin_h = sin($h);
     my $delta = $arg{delta} || 1 / 1440;
     my $jdm = cal2jd( $arg{year}, $arg{month}, int( $arg{day} ) );
@@ -121,11 +130,9 @@ sub _rst_function {
     my $cos_h = ( $sin_h - sin($phi) * sin( $delta[1] ) ) /
       ( cos($phi) * cos( $delta[1] ) );
     my $dt = delta_t($jdm) / $SEC_PER_DAY;
-
     sub {
         my $evt = shift;    # $EVT_RISE, $EVT_SET or $EVT_TRANSIT
-        die "Unknown event: $evt"
-          unless grep /^$evt$/, ( $EVT_RISE, $EVT_SET, $EVT_TRANSIT );
+        die "Unknown event: $evt" unless any {$evt eq $_}  @RS_EVENTS;
         my %arg = ( max_iter => 10, @_ );
 
         if ( $cos_h < -1 ) {
@@ -136,8 +143,9 @@ sub _rst_function {
             $arg{on_noevent}->($STATE_NEVER_RISES);
             return;
         }
+
         my $h0 = acos($cos_h);
-        my $m0 = ( $alpha[1] + $lambda - $gstm ) / pi2;
+        my $m0 = ( reduce_rad($alpha[1] + $lambda - $gstm) ) / pi2;
         my $m  = do {
             given ($evt) {
                 $m0 when $EVT_TRANSIT;
@@ -215,7 +223,7 @@ sub rst_event {
 sub twilight {
     my %arg = (type => $TWILIGHT_NAUTICAL, @_);
     my $type = delete $arg{type};
-
+    die "Unknown twilight type: \"$type\"" unless any{ $type eq $_ } @TWILIGHT_TYPES;
     my $func = _rst_function(
         h        => $H0_TWL{$type},
         pos_func => sub {

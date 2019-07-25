@@ -15,6 +15,7 @@ Readonly::Hash our %DARK_THEME => (
   data_row_data   => 'bright_white',
   table_row_title => 'white',
   table_row_data  => 'bright_yellow',
+  table_row_error => 'red',
   table_col_title => 'white'
 );
 
@@ -23,12 +24,17 @@ Readonly::Hash our %LIGHT_THEME => (
   data_row_data   => 'black',
   table_row_title => 'bright_blue',
   table_row_data  => 'black',
+  table_row_error => 'red',
   table_col_title => 'bright_blue'
 );
 
 sub print_data {
-    my ($title, $data, $scheme) = @_;
-    print colored( sprintf('%-20s', $title), $scheme->{data_row_title} );
+    my $title  = shift;
+    my $data   = shift;
+    my %arg    = (title_width => 20, @_);
+    my $fmt    = '%-' . $arg{title_width} . 's';
+    my $scheme = $arg{scheme};
+    print colored( sprintf($fmt, $title), $scheme->{data_row_title} );
     print colored(': ', $scheme->{data_row_title});
     $data = " $data" unless $data =~ /^[-+]/;
     say colored( $data, $scheme->{data_row_data});

@@ -24,7 +24,7 @@ use Astro::Montenbruck::Ephemeris qw/find_positions/;
 use Astro::Montenbruck::Ephemeris::Planet qw/@PLANETS/;
 use Helpers qw/
     parse_datetime parse_geocoords format_geo hms_str dms_or_dec_str dmsz_str
-    hms_str $LOCALE/;
+    $LOCALE @DEFAULT_PLACE/;
 use Display qw/%LIGHT_THEME %DARK_THEME print_data/;
 
 sub ecliptic_to_horizontal {
@@ -182,32 +182,33 @@ my $scheme = do {
 
 die "Unknown coordinates format: \"$format\"!" unless $format =~ /^D|S$/i;
 
+@place = @DEFAULT_PLACE unless @place;
+
 my $local = parse_datetime($time);
-print_data('Local Time', $local->strftime('%F %T %Z'), $scheme);
+print_data('Local Time', $local->strftime('%F %T %Z'), scheme => $scheme);
 my $utc;
 if ($local->time_zone ne 'UTC') {
     $utc   = $local->clone->set_time_zone('UTC');
-    print_data('Universal Time', $utc->strftime('%F %T'), $scheme);
 } else {
     $utc = $local;
 }
-print_data('Julian Day', sprintf('%.11f', $utc->jd), $scheme);
+print_data('Universal Time', $utc->strftime('%F %T'), scheme => $scheme);
+print_data('Julian Day', sprintf('%.11f', $utc->jd), scheme => $scheme);
 
 my $t = jd_cent($utc->jd);
 if ($use_dt) {
     # Universal -> Dynamic Time
     my $delta_t = delta_t($utc->jd);
-    print_data('Delta-T', sprintf('%05.2fs.', $delta_t), $scheme);
+    print_data('Delta-T', sprintf('%05.2fs.', $delta_t), scheme => $scheme);
     $t += $delta_t / $SEC_PER_CEN;
 }
 
-push @place, ('51N28', '000W00') unless @place;
 my ($lat, $lon) = parse_geocoords(@place);
-print_data('Place', format_geo($lat, $lon), $scheme);
+print_data('Place', format_geo($lat, $lon), scheme => $scheme);
 
 # Local Sidereal Time
 my $lst = jd2lst($utc->jd, $lon);
-print_data('Sidereal Time', hms_str($lst), $scheme);
+print_data('Sidereal Time', hms_str($lst), scheme => $scheme);
 
 # Ecliptic obliquity
 my $obliq = obliquity($t);
@@ -219,7 +220,7 @@ print_data(
         sign    => 1,
         decimal => $format eq 'D'
     ),
-    $scheme
+    scheme => $scheme
 );
 print "\n";
 
@@ -231,6 +232,7 @@ find_positions(
     with_motion => 1
 );
 print "\n";
+
 
 
 __END__

@@ -15,11 +15,12 @@ use Astro::Montenbruck::Time qw/jd2unix/;
 our $VERSION = 0.02;
 
 our @EXPORT_OK = qw/parse_datetime parse_geocoords dmsz_str dms_or_dec_str
-  dmsdelta_str hms_str format_geo @ZODIAC $LOCALE/;
+  dmsdelta_str hms_str format_geo @ZODIAC $LOCALE @DEFAULT_PLACE/;
 
 Readonly::Array our @DATETIME_PATTERNS => (
   '%F %R %Z', '%F %R %z', '%F %R',
   '%F %T %Z', '%F %T %z', '%F %T',
+  '%F'
 );
 
 Readonly::Array our @ZODIAC =>
@@ -27,6 +28,7 @@ Readonly::Array our @ZODIAC =>
   Sagittarius Capricorn Aquarius Pisces/;
 
 our $LOCALE = setlocale(LC_TIME);
+our @DEFAULT_PLACE = qw/51N28 000W00/;
 
 sub parse_datetime {
     my $s = shift;
@@ -50,6 +52,7 @@ sub parse_datetime {
     }
     $dt
 }
+
 
 sub parse_geocoords {
     for (@_) {

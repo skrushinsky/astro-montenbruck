@@ -275,14 +275,16 @@ E.g.: C<--place=51N28 0W0> for I<Greenwich, UK> (the default).
 
 =head1 DESCRIPTION
 
-B<riseset> riseset — calculate rise, set and transit times of Sun, Moon and the
+Calculate rise, set and transit times of Sun, Moon and the
 planets. The program also calculates twilight, nautical by default. To calculate
 civil or astronomical twilight, use C<--twilight> option.
 
 All times are given in the same time zone which was provided by C<--time> option,
 or the default system time zone.
 
-
+There are some conditions when an event can not be calculated. For instance,
+when celestial body is I<circumpolar> or I<never rises>. In such cases there is
+a dash (C<—>) instead of time.
 
 =head2 EXAMPLES
 

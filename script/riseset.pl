@@ -17,17 +17,18 @@ use Readonly;
 
 use Astro::Montenbruck::MathUtils qw/frac hms/;
 use Astro::Montenbruck::Ephemeris::Planet qw/@PLANETS/;
-use Astro::Montenbruck::Time qw/jd2unix/;
+use Astro::Montenbruck::Time qw/jd2unix cal2jd/;
+use Astro::Montenbruck::RiseSet::Constants qw/:events :twilight/;
 use Astro::Montenbruck::RiseSet qw/:all/;
 use Helpers qw/parse_datetime parse_geocoords format_geo hms_str
                $LOCALE @DEFAULT_PLACE/;
 use Display qw/%LIGHT_THEME %DARK_THEME print_data/;
 
-binmode(STDOUT, ":utf8");
+binmode(STDOUT, ":encoding(UTF-8)");
 
 Readonly::Hash our %TWILIGHT_TITLE => (
-    $EVT_RISE => 'Morning',
-    $EVT_SET  => 'Evening',
+    $EVT_RISE => 'Dawn',
+    $EVT_SET  => 'Dusk',
 );
 
 sub process_planet {
@@ -60,42 +61,59 @@ sub process_planet {
     print "\n"
 }
 
-
+# date   => [ $utc->year, $utc->month, $utc->day ],
+# phi    => $lat,
+# lambda => $lon,
+# type   => $twilight,
+# scheme => $scheme,
+# timezone => $local->time_zone
 sub process_twilight {
-    my ($func, $scheme, $tzone) = @_;
+    my %arg = @_;
+    my $date = $arg{date};
+
+    my %res;
+    twilight(
+        %arg,
+        on_event => sub {
+            my ( $evt, $ut ) = @_;
+            my $jd = cal2jd($date->[0], $date->[1], int($date->[2]) + $ut / 24);
+            my $dt = DateTime->from_epoch(epoch => jd2unix($jd))
+                             ->set_time_zone($arg{timezone});
+            $res{$evt} = $dt;
+        },
+        on_noevent => sub{}
+    );
 
     for my $evt ($EVT_RISE, $EVT_SET) {
-        $func->(
-            $evt,
-            on_event   => sub {
-                my $jd = shift; # Standard Julian date
-                my $dt = DateTime->from_epoch(epoch => jd2unix($jd))
-                                 ->set_time_zone($tzone);
-                print_data(
-                    $TWILIGHT_TITLE{$evt},
-                    $dt->strftime('%T'),
-                    scheme      => $scheme,
-                    title_width => 7
-                );
-            },
-            on_noevent => sub {
-                print_data(
-                    $TWILIGHT_TITLE{$evt},
-                    ' — ',
-                    scheme      => $scheme,
-                    title_width => 7
-                );
-            }
-        );
+        if (exists $res{$evt}) {
+            print_data(
+                $TWILIGHT_TITLE{$evt},
+                $res{$evt}->strftime('%T'),
+                scheme      => $arg{scheme},
+                title_width => 7
+            );
+        }
+        else {
+            print_data(
+                $TWILIGHT_TITLE{$evt},
+                ' — ',
+                scheme      => $arg{scheme},
+                title_width => 7
+            );
+        }
     }
 }
 
+my $now = DateTime->now()->set_locale($LOCALE);
+
 my $man      = 0;
 my $help     = 0;
-my $date     = DateTime->now()->set_locale($LOCALE)->strftime('%F');
+my $date     = $now->strftime('%F');
+my $tzone;
 my @place;
 my $theme    = 'dark';
 my $twilight = $TWILIGHT_NAUTICAL;
+
 
 # Parse options and print usage if there is a syntax error,
 # or if usage was explicitly requested.
@@ -103,6 +121,7 @@ GetOptions(
     'help|?'     => \$help,
     'man'        => \$man,
     'date:s'     => \$date,
+    'timezone:s' => \$tzone,
     'place:s{2}' => \@place,
     'theme:s'    => \$theme,
     'twilight:s' => \$twilight
@@ -122,6 +141,7 @@ my $scheme = do {
 };
 
 my $local = parse_datetime($date);
+$local->set_time_zone($tzone) if defined($tzone);
 print_data(
     'Date',
     $local->strftime('%F %Z'),
@@ -145,9 +165,7 @@ print colored(
 for (@PLANETS) {
     my $func = rst_event(
         planet => $_,
-        year   => $utc->year,
-        month  => $utc->month,
-        day    => $utc->day,
+        date   => [ $utc->year, $utc->month, $utc->day ],
         phi    => $lat,
         lambda => $lon
     );
@@ -156,16 +174,12 @@ for (@PLANETS) {
 
 say colored("\nTwilight ($twilight)\n", $scheme->{data_row_title});
 process_twilight(
-    twilight(
-        year   => $utc->year,
-        month  => $utc->month,
-        day    => $utc->day,
-        phi    => $lat,
-        lambda => $lon,
-        type   => $twilight
-    ),
-    $scheme,
-    $local->time_zone
+    date   => [ $utc->year, $utc->month, $utc->day ],
+    phi    => $lat,
+    lambda => $lon,
+    type   => $twilight,
+    scheme => $scheme,
+    timezone => $local->time_zone
 );
 
 print "\n";
@@ -180,6 +194,7 @@ __END__
 =head1 NAME
 
 riseset — calculate rise, set and transit times of Sun, Moon and the planets.
+
 
 =head1 SYNOPSIS
 
@@ -197,18 +212,26 @@ Prints a brief help message and exits.
 
 Prints the manual page and exits.
 
-=item B<--time>
+=item B<--date>
 
-Date and time, either a I<calendar entry> in format C<YYYY-MM-DD HH:MM Z>, or
-C<YYYY-MM-DD HH:MM Z>, or a floating-point I<Julian Day>:
+Calendar date in format C<YYYY-MM-DD>, e.g.:
 
-  --datetime="2019-06-08 12:00 +0300"
-  --datetime="2019-06-08 09:00 UTC"
-  --datetime=2458642.875
+  --date=2019-06-08
 
-Calendar entries should be enclosed in quotation marks. Optional B<"Z"> stands for
-time zone, short name or offset from UTC. C<"+00300"> in the example above means
-I<"3 hours east of Greenwich">.
+Current date in default local time zone If omitted.
+
+=item B<--timezone>
+
+Time zone short name, e.g.: C<EST>, C<UTC> etc. or I<offset from Greenwich>
+in format B<+HHMM> / B<-HHMM>, like C<+0300>.
+
+    --timezone=CET # Central European Time
+    --timezone=EST # Eastern Standard Time
+    --timezone=UTC # Universal Coordinated Time
+    --timezone=GMT # Greenwich Mean Time, same as the UTC
+    --timezone=+0300 # UTC + 3h (eastward from Greenwich)
+
+Local timezone by default.
 
 =item B<--place>
 
@@ -222,7 +245,7 @@ The observer's location. Contains 2 elements, space separated, in any order:
 
 =back
 
-E.g.: C<--place=51N28 0W0> for I<Greenwich, UK>.
+E.g.: C<--place=51N28 0W0> for I<Greenwich, UK> (the default).
 
 =item B<--twilight> type of twilight:
 
@@ -230,7 +253,9 @@ E.g.: C<--place=51N28 0W0> for I<Greenwich, UK>.
 
 =item * B<civil>
 
-=item * B<nautical>
+=item * B<nautical> (default)
+
+=item * B<astronomical>
 
 =back
 
@@ -250,6 +275,18 @@ E.g.: C<--place=51N28 0W0> for I<Greenwich, UK>.
 
 =head1 DESCRIPTION
 
-B<riseset> riseset — calculate rise, set and transit times of Sun, Moon and the planets.
+B<riseset> riseset — calculate rise, set and transit times of Sun, Moon and the
+planets. The program also calculates twilight, nautical by default. To calculate
+civil or astronomical twilight, use C<--twilight> option.
+
+All times are given in the same time zone which was provided by C<--time> option,
+or the default system time zone.
+
+
+
+=head2 EXAMPLES
+
+    perl ./script/riseset.pl --place=56N26 37E09 --twilight=civil
+    perl ./script/riseset.pl --place=56N26 37E09 --date=1968-02-11 --timezone=UTC
 
 =cut

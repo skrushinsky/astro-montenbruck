@@ -174,38 +174,26 @@ time of rise and set events.
 
 =over
 
-=item * B<get_position>
+=item * B<get_position> — function, which given I<Standard Julian Day>,
+returns equatorial coordinates of the celestial body, in radians.
 
-function, which given I<Standard Julian Day>, returns equatorial coordinates
-of the celestial body, in radians.
-
-=item * B<date>
-
-array of B<year> (astronomical, zero-based), B<month> (1..12) and B<day>, 1..31.
+=item * B<date> — array of B<year> (astronomical, zero-based), B<month> [1..12]
+and B<day>, [1..31].
 
 
-=item * B<phi>
+=item * B<phi> — geographic latitude, degrees, positive northward
 
-geographic latitude, degrees, positive northward
+=item * B<lambda> —geographic longitude, degrees, positive westward
 
-=item * B<lambda>
+=item * B<get_position> — function, which given I<Standard Julian Day>,
+returns equatorial coordinates of the celestial body, in radians.
 
-geographic longitude, degrees, positive westward
-
-=item * B<get_position>
-
-function, which given I<Standard Julian Day>, returns equatorial coordinates
-of the celestial body, in radians.
-
-=item * B<sin_h0>
-
-sine of the I<standard altitude>, i.e. the geometric altitude of the center of the body at
-the time of apparent rising or setting.
+=item * B<sin_h0> — sine of the I<standard altitude>, i.e. the geometric altitude
+of the center of the body at the time of apparent rising or setting.
 
 
-=item *
-
-C<on_event> callback is called when the event time is determined. The arguments are:
+=item * C<on_event> callback is called when the event time is determined.
+The arguments are:
 
 =over
 
@@ -217,10 +205,8 @@ C<on_event> callback is called when the event time is determined. The arguments 
 
     on_event => sub { my ($evt, $ut) = @_; ... }
 
-=item *
-
-C<on_noevent> is called when the event does not happen at the given date, either
-because the body never rises, or is circumpolar. The argument is respectively
+=item * C<on_noevent> is called when the event does not happen at the given date,
+either because the body never rises, or is circumpolar. The argument is respectively
 C<$STATE_NEVER_RISES> or C<$STATE_CIRCUMPOLAR>.
 
     on_noevent => sub { my $state = shift; ... }

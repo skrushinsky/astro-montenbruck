@@ -210,28 +210,19 @@ Returns function for calculating time of event. See L</EVENT FUNCTION> below.
 
 =over
 
-=item * B<date>
+=item * B<date> — array of B<year> (astronomical, zero-based), B<month> [1..12],
+and B<day>, [1..31].
 
-array of B<year> (astronomical, zero-based), B<month> (1..12) and B<day>, 1..31.
+=item * B<phi> — geographical latitude, degrees, positive northward
 
-=item * B<phi>
+=item * B<lambda> — geographical longitude, degrees, positive westward
 
-geographic latitude, degrees, positive northward
-
-=item * B<lambda>
-
-geographic longitude, degrees, positive westward
-
-=item * B<get_position>
-
-function, which given I<Standard Julian Day>, returns equatorial coordinates
-of the celestial body, in radians.
+=item * B<get_position> — function, which given I<Standard Julian Day>, returns
+equatorial coordinates of the celestial body, in radians.
 
 
-=item * B<h>
-
-the standard altitude, i.e. the geometric altitude of the center of the body at
-the time of apparent rising or setting, degrees.
+=item * B<h> — the I<standard altitude>, i.e. the geometric altitude of the
+center of the body at the time of apparent rising or setting, degrees.
 
 =back
 
@@ -249,17 +240,13 @@ Named arguments are callback functions:
 
 =over
 
-=item *
-
-C<on_event> is called when the event time is determined. The argument is
+=item * C<on_event> is called when the event time is determined. The argument is
 I<Standard Julian day> of the event.
 
     on_event => sub { my $jd = shift; ... }
 
-=item *
-
-C<on_noevent> is called when the event does not happen at the given date, either
-because the body never rises, or is circumpolar. The argument is respectively
+=item * C<on_noevent> is called when the event does not happen at the given date,
+either because the body never rises, or is circumpolar. The argument is respectively
 C<$STATE_NEVER_RISES> or C<$STATE_CIRCUMPOLAR>, see
 L<Astro::Montenbruck::RiseSet::Constants/STATES>.
 

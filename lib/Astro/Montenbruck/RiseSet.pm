@@ -175,10 +175,10 @@ horizon.
 
 =item * I<astronomical>
 
-Sun altitude is B<-6°> In the morning, the sky is completely dark before the onset
-of astronomical twilight, and in the evening, the sky becomes completely dark at
-the end of astronomical twilight. Any celestial bodies that can be viewed by the
-naked eye can be observed in the sky after the end of this phase.
+Sun altitude is B<-18°> In the morning, the sky is completely dark before the
+onset of astronomical twilight, and in the evening, the sky becomes completely
+dark at the end of astronomical twilight. Any celestial bodies that can be
+viewed by the naked eye can be observed in the sky after the end of this phase.
 
 =item * I<nautical>
 
@@ -187,7 +187,7 @@ and artificial light is generally required for outdoor activities.
 
 =item * I<civil>
 
-Sun altitude is B<-18°>. Civil twilight is the brightest form of twilight.
+Sun altitude is B<-6°>. Civil twilight is the brightest form of twilight.
 There is enough natural sunlight during this period that artificial light may
 not be required to carry out outdoor activities. Only the brightest celestial
 objects can be observed by the naked eye during this time.
@@ -217,22 +217,15 @@ L<Astro::Montenbruck::RiseSet::RST/EVENT FUNCTION> .
 
 =over
 
-=item * B<planet>
-
-celestial body identifier, one of constants defined in
+=item * B<planet> — celestial body identifier, one of constants defined in
 L<Astro::Montenbruck::Ephemeris::Planet>.
 
-=item * B<date>
+=item * B<date> — array of B<year> (astronomical, zero-based), B<month> [1..12]
+and B<day>, [1..31].
 
-array of B<year> (astronomical, zero-based), B<month> (1..12) and B<day>,  (1..31).
+=item * B<phi> — geographical latitude, degrees, positive northward
 
-=item * B<phi>
-
-geographic latitude, degrees, positive northward
-
-=item * B<lambda>
-
-geographic longitude, degrees, positive westward
+=item * B<lambda> — geographical longitude, degrees, positive westward
 
 =back
 
@@ -245,38 +238,28 @@ Function for calculating twilight. See L</TWILIGHT EVENT FUNCTION> below.
 
 =over
 
-=item * B<type>
+=item * B<type> — type of twilight, C<$TWILIGHT_NAUTICAL>, C<$TWILIGHT_ASTRO>
+or C<$TWILIGHT_CIVIL>, see L<Astro::Montenbruck::RiseSet::Constants/TYPES OF TWILIGHT>.
 
-type of twilight, C<$TWILIGHT_NAUTICAL>, C<$TWILIGHT_ASTRO> or C<$TWILIGHT_CIVIL>,
-see L<Astro::Montenbruck::RiseSet::Constants/TYPES OF TWILIGHT>.
+=item * B<date> — array of B<year> (astronomical, zero-based), B<month> [1..12] and B<day>, [1..31].
 
-=item * B<date>
+=item * B<phi> — geographical latitude, degrees, positive northward
 
-array of B<year> (astronomical, zero-based), B<month> (1..12) and B<day>,  (1..31).
+=item * B<lambda> — geographical longitude, degrees, positive westward
 
-=item * B<phi>
-
-geographic latitude, degrees, positive northward
-
-=item * B<lambda>
-
-geographic longitude, degrees, positive westward
-
-=item *
-
-B<on_event> callback is called when the event time is determined. The arguments are:
+=item * B<on_event> — callback called when the event time is determined. The arguments are:
 
 =over
 
-=item * event type, one of C</$EVT_RISE> or C</$EVT_SET>
+=item * Event type, one of C<$EVT_RISE> or C<$EVT_SET>,
+L<Astro::Montenbruck::RiseSet::Constants/EVENTS>. The first indicates I<dawn>,
+the second — I<dusk>.
 
-=item * Univerrsal time of the event
+=item * Time of the event, UTC.
 
 =back
 
-=item *
-
-B<on_noevent> is called when the event never happens, either because the body
+=item * B<on_noevent> is called when the event never happens, either because the body
 never rises, or is circumpolar. The argument is respectively
 C<$STATE_NEVER_RISES> or C<$STATE_CIRCUMPOLAR>, see
 L<Astro::Montenbruck::RiseSet::Constants/STATES>.

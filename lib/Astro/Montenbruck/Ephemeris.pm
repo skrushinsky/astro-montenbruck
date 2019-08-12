@@ -72,7 +72,7 @@ sub _iterator {
         $sun_lbr;
     };
 
-    # function for mean2trueing mean geocentric coordinates to true
+    # function for converting mean geocentric coordinates to true geocentric
     my $get_nut_func = sub {
         $nut_func = mean2true($t) unless defined $nut_func;
         $nut_func

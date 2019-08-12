@@ -67,7 +67,7 @@ __END__
 
 =head1 NAME
 
-Astro::Montenbruck::Ephemeris::Planet - Base class for a planet.
+Astro::Montenbruck::NutEqu - Obliquity of the ecliptic & nutation.
 
 =head1 SYNOPSIS
 
@@ -78,9 +78,7 @@ Astro::Montenbruck::Ephemeris::Planet - Base class for a planet.
 
 =head1 DESCRIPTION
 
-Base class for a planet. Designed to be extended. Used internally in
-Astro::Montenbruck::Ephemeris modules. Subclasses must implement B<heliocentric>
-method.
+Functions dealing with ecliptic obliquity.
 
 =head1 SUBROUTINES
 

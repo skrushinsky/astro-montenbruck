@@ -81,9 +81,8 @@ sub search_event {
     my ( $date, $quarter ) = @_;
 
     my $q = $QUARTER{$quarter};
-
     my $n  = is_leapyear($date->[0]) ? 366 : 365;
-    my $y  = day_of_year(@$date);
+    my $y  = $date->[0] + day_of_year(@$date) / $n;
     my $k  = sprintf( '%.0f', ( $y - 2000 ) * 12.3685 ) + $q->{fraction};
     my $t  = $k / 1236.85;
     my $t2 = $t * $t;
@@ -207,8 +206,9 @@ sub search_event {
     };
 
     my @rsi = map { sin( deg2rad($_) ) } @si;
-    my @terms =
-      zip_unflatten( @{ $q->{terms} }, @rsi );
+    my @terms = grep {
+        defined $_->[0] && defined $_->[1]
+    } zip_unflatten( @{ $q->{terms} }, @rsi );
     my $s = 0;
     while ( my ( $i, $item ) = each @terms ) {
         my ($x, $y) = @$item;
@@ -244,10 +244,10 @@ sub search_event {
     }
 
     $s = reduce {
-        $a + $b->[1] + sin( deg2rad( $b->[0] ) )
+        $a + $b->[1] * sin( deg2rad( $b->[0] ) )
     } 0, zip_unflatten( @A, @A_TERMS );
     $j += $s;
-
+$DB::single = 1;
     $j
 }
 

@@ -8,16 +8,16 @@ use Readonly;
 use Math::Trig qw/deg2rad/;
 use List::Util qw/any reduce/;
 use List::MoreUtils qw/zip_unflatten/;
-use Astro::Montenbruck::MathUtils qw/reduce_deg/;
+use Astro::Montenbruck::MathUtils qw/reduce_deg polynome/;
 use Astro::Montenbruck::Time qw/is_leapyear day_of_year/;
 
-my @quarters   = qw/$NEW_MOON $FIRST_QUARTER $FULL_MOON $LAST_QUARTER/;
-my @funcs = qw/search_event/;
+my @quarters = qw/$NEW_MOON $FIRST_QUARTER $FULL_MOON $LAST_QUARTER/;
+my @funcs    = qw/mean_phase search_event/;
 
 our %EXPORT_TAGS = (
-    quarters    => \@quarters,
-    functions   => \@funcs,
-    all         => [ @quarters, @funcs ]
+    quarters  => \@quarters,
+    functions => \@funcs,
+    all       => [ @quarters, @funcs ]
 );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
@@ -53,10 +53,29 @@ Readonly::Array my @QUARTER_TERMS => (
 );
 
 Readonly::Array my @A_TERMS => (
+    [ 251.88, 0.016321 ],
+    [ 251.83, 26.651886 ],
+    [ 349.42, 36.412478 ],
+    [ 84.66,  18.206239 ],
+    [ 141.74, 53.303771 ],
+    [ 207.14, 2.453732 ],
+    [ 154.84, 7.306860 ],
+    [ 34.52,  27.261239 ],
+    [ 207.19, 0.121824 ],
+    [ 291.34, 1.844379 ],
+    [ 161.72, 24.198154 ],
+    [ 239.56, 25.513099 ],
+    [ 331.55, 3.592518 ]
+);
+
+
+Readonly::Array my @A_CORR => (
     0.000325, 0.000165, 0.000164, 0.000126, 0.000110, 0.000062,
     0.000060, 0.000056, 0.000047, 0.000042, 0.000040, 0.000037,
     0.000035, 0.000023
 );
+
+
 
 Readonly::Hash our %QUARTER => (
     $NEW_MOON => {
@@ -77,64 +96,46 @@ Readonly::Hash our %QUARTER => (
     },
 );
 
+sub _mean_phase {
+    my ( $date, $fraction ) = @_;
+
+    my $n = is_leapyear( $date->[0] ) ? 366 : 365;
+    my $y = $date->[0] + day_of_year(@$date) / $n;
+    sprintf( '%.0f', ( $y - 2000 ) * 12.3685 ) + $fraction;
+}
+
+sub _mean_orbit {
+    my ($k, $t) = @_;
+
+    polynome( $t, 1, -0.002516, -7.4e-06 ),
+    map {
+        my @terms = @$_;
+        reduce_deg(
+            polynome( $t, $terms[0] + $terms[1] * $k, @terms[ 2 .. $#terms ] )
+        )
+    } (
+        [ 2.5534, 29.1053567, -1.4e-06, -1.1e-07 ], # Sun's mean anomaly
+        [ 201.5643, 385.81693528, 0.0107582, 1.238e-05, -5.8e-08 ], # Moon's mean anomaly
+        [ 160.7108, 390.67050284, -0.0016118, -2.27e-06, -1.1e-08 ], # Moon's argument of latitude
+        [ 124.7746, -1.56375588, 0.0020672, 2.15e-06 ], # Longitude of the ascending node
+    )
+}
+
 sub search_event {
     my ( $date, $quarter ) = @_;
 
     my $q = $QUARTER{$quarter};
-    my $n  = is_leapyear($date->[0]) ? 366 : 365;
-    my $y  = $date->[0] + day_of_year(@$date) / $n;
-    my $k  = sprintf( '%.0f', ( $y - 2000 ) * 12.3685 ) + $q->{fraction};
+    my $k = _mean_phase( $date, $q->{fraction} );
     my $t  = $k / 1236.85;
-    my $t2 = $t * $t;
-    my $t3 = $t2 * $t;
-    my $t4 = $t3 * $t;
 
     # JDE
-    my $j =
-      2451550.09766 + 29.530588861 * $k +
-      0.00015437 * $t2 -
-      1.5e-07 * $t3 +
-      7.3e-10 * $t4;
-    my $E  = 1 - 0.002516 * $t - 7.4e-06 * $t2;
+    my $j = polynome( $t, 2451550.09766 + 29.530588861 * $k,
+        0.00015437, 1.5e-07, 7.3e-10 );
+    my ( $E, $MS, $MM, $F, $N ) = _mean_orbit($k, $t);
     my $EE = $E * $E;
-
-    # Sun's mean anomaly
-    my $MS =
-      reduce_deg( 2.5534 + 29.1053567 * $k - 1.4e-06 * $t2 - 1.1e-07 * $t3 );
-
-    # Moon's mean anomaly
-    my $MM =
-      reduce_deg( 201.5643 + 385.81693528 * $k +
-          0.0107582 * $t2 +
-          1.238e-05 * $t3 -
-          5.8e-08 * $t4 );
-
-    # Moon's argument of latitude
-    my $F =
-      reduce_deg( 160.7108 + 390.67050284 * $k -
-          0.0016118 * $t2 -
-          2.27e-06 * $t3 -
-          1.1e-08 * $t4 );
-
-    # Longitude of the ascending node
-    my $N = reduce_deg(
-        124.7746 - 1.56375588 * $k + 0.0020672 * $t2 + 2.15e-06 * $t3 );
-
-    my @A = (
-        299.77 + 0.107408 * $k - 0.009173 * $t2,
-        251.88 + 0.016321 * $k,
-        251.83 + 26.651886 * $k,
-        349.42 + 36.412478 * $k,
-        84.66 + 18.206239 * $k,
-        141.74 + 53.303771 * $k,
-        207.14 + 2.453732 * $k,
-        154.84 + 7.306860 * $k,
-        34.52 + 27.261239 * $k,
-        207.19 + 0.121824 * $k,
-        291.34 + 1.844379 * $k,
-        161.72 + 24.198154 * $k,
-        239.56 + 25.513099 * $k,
-        331.55 + 3.592518 * $k
+    my @A  = (
+        299.77 + 0.107408 * $k - 0.009173 * $t * $t,
+        map { polynome($k, @$_) } @A_TERMS
     );
 
     my $mm2 = $MM + $MM;
@@ -172,7 +173,7 @@ sub search_event {
                 $MM - $MS - $f2,
                 $mm3 + $MS,
                 $mm2 + $mm2
-            )
+              )
         }
         else {
             (
@@ -206,12 +207,11 @@ sub search_event {
     };
 
     my @rsi = map { sin( deg2rad($_) ) } @si;
-    my @terms = grep {
-        defined $_->[0] && defined $_->[1]
-    } zip_unflatten( @{ $q->{terms} }, @rsi );
+    my @terms = grep { defined $_->[0] && defined $_->[1] }
+      zip_unflatten( @{ $q->{terms} }, @rsi );
     my $s = 0;
     while ( my ( $i, $item ) = each @terms ) {
-        my ($x, $y) = @$item;
+        my ( $x, $y ) = @$item;
         if ( $quarter eq $NEW_MOON || $quarter eq $FULL_MOON ) {
             if ( any { $i == $_ } ( 1, 4, 5, 9, 11, 12, 13 ) ) {
                 $x *= $E;
@@ -245,10 +245,10 @@ sub search_event {
 
     $s = reduce {
         $a + $b->[1] * sin( deg2rad( $b->[0] ) )
-    } 0, zip_unflatten( @A, @A_TERMS );
+    }
+    0, zip_unflatten( @A, @A_CORR );
     $j += $s;
-$DB::single = 1;
-    $j
+    $j;
 }
 
 1;

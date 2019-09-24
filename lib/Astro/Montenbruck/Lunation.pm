@@ -75,7 +75,10 @@ Readonly::Array my @A_CORR => (
     0.000035, 0.000023
 );
 
-
+Readonly::Array my @MANOM_SUN => ( 2.5534, 29.1053567, -1.4e-06, -1.1e-07 ); # Sun's mean anomaly
+Readonly::Array my @MANOM_MOO => ( 201.5643, 385.81693528, 0.0107582, 1.238e-05, -5.8e-08 ); # Moon's mean anomaly
+Readonly::Array my @ARGLA_MOO => ( 160.7108, 390.67050284, -0.0016118, -2.27e-06, -1.1e-08 ); # Moon's argument of latitude
+Readonly::Array my @LONND_MOO => ( 124.7746, -1.56375588, 0.0020672, 2.15e-06 ); # Longitude of the ascending node)
 
 Readonly::Hash our %QUARTER => (
     $NEW_MOON => {
@@ -96,6 +99,8 @@ Readonly::Hash our %QUARTER => (
     },
 );
 
+
+
 sub _mean_phase {
     my ( $date, $fraction ) = @_;
 
@@ -107,18 +112,25 @@ sub _mean_phase {
 sub _mean_orbit {
     my ($k, $t) = @_;
 
-    polynome( $t, 1, -0.002516, -7.4e-06 ),
+    polynome( $t, 1, -2.516e-3, -7.4e-06 ),
     map {
         my @terms = @$_;
         reduce_deg(
             polynome( $t, $terms[0] + $terms[1] * $k, @terms[ 2 .. $#terms ] )
         )
-    } (
-        [ 2.5534, 29.1053567, -1.4e-06, -1.1e-07 ], # Sun's mean anomaly
-        [ 201.5643, 385.81693528, 0.0107582, 1.238e-05, -5.8e-08 ], # Moon's mean anomaly
-        [ 160.7108, 390.67050284, -0.0016118, -2.27e-06, -1.1e-08 ], # Moon's argument of latitude
-        [ 124.7746, -1.56375588, 0.0020672, 2.15e-06 ], # Longitude of the ascending node
-    )
+    } ( \@MANOM_SUN, \@MANOM_MOO, \@ARGLA_MOO, \@LONND_MOO )
+}
+
+sub _mean_jde {
+    my ($k, $t) = @_;
+
+    polynome(
+        $t,
+        2451550.09766 + 29.530588861 * $k,
+        0.00015437,
+        1.5e-07,
+        7.3e-10
+    );
 }
 
 sub search_event {
@@ -129,8 +141,7 @@ sub search_event {
     my $t  = $k / 1236.85;
 
     # JDE
-    my $j = polynome( $t, 2451550.09766 + 29.530588861 * $k,
-        0.00015437, 1.5e-07, 7.3e-10 );
+    my $j = _mean_jde($k, $t);
     my ( $E, $MS, $MM, $F, $N ) = _mean_orbit($k, $t);
     my $EE = $E * $E;
     my @A  = (
@@ -248,8 +259,17 @@ sub search_event {
     }
     0, zip_unflatten( @A, @A_CORR );
     $j += $s;
-    $j;
+    $j, $F
 }
+
+
+sub is_eclipse_possible {
+    my $f = shift;
+    my $s = abs sin(deg2rad($f));
+    return 0 if $s > 0.36; # no eclipse
+
+}
+
 
 1;
 __END__

@@ -193,8 +193,7 @@ Version 0.01
 Low-level routines for calculating rise, set and transit times of celestial
 bodies. The calculations are based on I<"Astronomical Algorythms" by Jean Meeus>.
 The same subject is discussed in I<Montenbruck & Phleger>'s book, but Meeus's
-method is more general and consistent and generic. Unit tests use examples from
-the both sources.
+method is more general and consistent. Unit tests use examples from the both sources.
 
 The general problem here is to find the instant of time at which a celestial
 body reaches a predetermined I<altitude>.

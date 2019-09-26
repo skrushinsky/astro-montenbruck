@@ -11,11 +11,11 @@ use POSIX qw (floor ceil acos modf fmod);
 use List::Util qw/any reduce/;
 
 use Math::Trig qw/:pi :radial deg2rad rad2deg/;
-use constant { ARCS => 3600.0 * 180.0 / pi };
+use constant { ARCS => 3600.0 * 180.0 / pi }; # arcsec per radian
 
 our %EXPORT_TAGS = (
     all => [
-        qw/frac frac360 dms hms zdms ddd polynome sine
+        qw/trunc frac frac360 frac2pi dms hms zdms ddd polynome sine
           reduce_deg reduce_rad to_range opposite_deg opposite_rad
           angle_s angle_c angle_c_rad diff_angle polar cart
           ARCS/
@@ -24,9 +24,15 @@ our %EXPORT_TAGS = (
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our $VERSION = 0.02;
 
-sub frac($x) { ( modf($x) )[0] }
+
+sub frac($x) {
+    my $f = (modf($x))[0];
+    $x < 0 ? $f + 1 : $f
+}
 
 sub frac360($x) { frac($x) * 360 }
+
+sub frac2pi($x) { frac($x) * pi2 }
 
 sub dms ( $x, $places = 3 ) {
     return $x if $places == 1;

@@ -18,6 +18,9 @@ Readonly our $D1 => 1236.853086;
 # mean elongation $d of the Moon from the Sun for the epoch J2000 in units of 1rev=360deg
 Readonly our $D0 => 0.827361;
 
+# improves an approximation T for the time of New Moon and 
+# finds the ecliptic longitude B of the Moon for that date
+# ( T in julian cent. since J2000, T=(JD-2451545)/36525 )     
 sub _improve {
     my ( $t, $callback ) = @_;
 
@@ -70,7 +73,7 @@ sub iter_newmoon {
     my $lun_i = $lun_0 - 1;
     sub {
         return undef if ++$lun_i > $lun_0 + 13;
-$DB::single = 1 if $lun_i == -11;
+
         my $t = ( $lun_i - $D0 ) / $D1;
         _improve(
             $t,
@@ -91,3 +94,78 @@ $DB::single = 1 if $lun_i == -11;
 }
 
 1;
+
+__END__
+
+=pod
+
+=encoding UTF-8
+
+=head1 NAME
+
+Astro::Montenbruck::Lunation::NewMoon — Date of New Moon and ecliptic latitude of the Moon.
+
+=head1 SYNOPSIS
+
+    use Astro::Montenbruck::Lunation::NewMoon qw/iter_newmoon/
+
+    my $iter = iter_newmoon(1999); # iterator for New Moon instants in year 1999.
+    while ( my $res = $iter->() ) {
+        my ($mjd, $beta) = @$res; # MJD of New Moon and Moon latitude in degrees
+        ...
+    }
+
+=head1 VERSION
+
+Version 0.01
+
+
+=head1 DESCRIPTION
+
+Date of New Moon and ecliptic latitude of the Moon.
+
+=head1 EXPORT
+
+=head2 FUNCTIONS
+
+=over
+
+=item * L</iter_newmoon( $year )>
+
+=back
+
+=head1 FUNCTIONS
+
+=head2 iter_newmoon( $year )
+
+Returns iterator function, which in its turn on each invocation returns arrayref of:
+
+=over
+
+=item 1. Modified Julian Date of next New Moon
+
+=item 2. Latitude of the Moon, in arc-degrees.
+
+=back
+
+=head3 Arguments
+
+=over
+
+=item * Gregorian year
+
+=back
+
+
+=head1 AUTHOR
+
+Sergey Krushinsky, C<< <krushi at cpan.org> >>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2010-2019 by Sergey Krushinsky
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut

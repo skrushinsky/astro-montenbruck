@@ -47,3 +47,4 @@ nytprof/
 
 script/swisseph.pl
 *.yml
+.vscode

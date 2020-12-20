@@ -150,7 +150,16 @@ print_data(
 );
 my $utc = $local->time_zone ne 'UTC' ? $local->clone->set_time_zone('UTC')
                                      : $local;
-my ($lat, $lon) = parse_geocoords(@place);
+
+my ($lat, $lon);
+
+# first, check if geo-coordinates are given in decimal format
+if  (grep(/^[\+\-]?(\d+(\.?\d+)?|(\.\d+))$/, @place) == 2) {
+    ($lat, $lon) = @place;
+} else {
+    ($lat, $lon) = parse_geocoords(@place);
+}
+
 print_data(
     'Place',
     format_geo($lat, $lon),
@@ -235,7 +244,7 @@ Local timezone by default.
 
 =item B<--place>
 
-The observer's location. Contains 2 elements, space separated, in any order:
+The observer's location. Contains 2 elements, space separated. 
 
 =over
 
@@ -246,6 +255,20 @@ The observer's location. Contains 2 elements, space separated, in any order:
 =back
 
 E.g.: C<--place=51N28 0W0> for I<Greenwich, UK> (the default).
+
+B<Decimal numbers> are also supported. In that case
+
+=over
+
+=item * The latitude always goes first
+
+=item * Negative numbers represent I<South> latitude and I<East> longitudes. 
+
+=back
+
+C<--place=55.75 -37.58> for I<Moscow, Russian Federation>.
+C<--place=40.73 73.935> for I<New-York, NY, USA>.
+
 
 =item B<--twilight> type of twilight:
 

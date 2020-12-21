@@ -495,7 +495,7 @@ Sergey Krushinsky, C<< <krushi at cpan.org> >>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009-2019 Sergey Krushinsky.
+Copyright 2009-2020 Sergey Krushinsky.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

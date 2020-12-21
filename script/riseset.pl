@@ -106,10 +106,10 @@ sub process_twilight {
 
 my $now = DateTime->now()->set_locale($LOCALE);
 
-my $man      = 0;
-my $help     = 0;
-my $date     = $now->strftime('%F');
-my $tzone;
+my $man     = 0;
+my $help    = 0;
+my $date    = $now->strftime('%F');
+my $tzone   = $now->strftime('%z');
 my @place;
 my $theme    = 'dark';
 my $twilight = $TWILIGHT_NAUTICAL;
@@ -240,7 +240,12 @@ in format B<+HHMM> / B<-HHMM>, like C<+0300>.
     --timezone=GMT # Greenwich Mean Time, same as the UTC
     --timezone=+0300 # UTC + 3h (eastward from Greenwich)
 
-Local timezone by default.
+By default, local timezone by default, UTC under Windows.
+
+Please, note: Windows platform does not recognize some time zone names, 
+C<MSK> for instance. In such cases, use 
+I<offset from Greenwich> format, as described above.
+
 
 =item B<--place>
 

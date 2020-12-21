@@ -19,7 +19,7 @@ use Astro::Montenbruck::CoCo qw/equ2hor/;
 use Astro::Montenbruck::RiseSet::Constants qw/:events :states/;
 
 our @EXPORT_OK = qw/rst_function/;
-our $VERSION   = 0.01;
+our $VERSION   = 0.02;
 
 # Interpolate from three equally spaced tabular angular values.
 #
@@ -30,15 +30,24 @@ our $VERSION   = 0.01;
 # for example: 359 degrees...0 degrees...1 degree.
 #
 # Arguments:
-#   - `n` : the interpolating factor, must be between -1 and 1
-#   - `y` : a sequence of three values
+#   - `n`       : the interpolating factor, must be between -1 and 1
+#   - `y`       : a sequence of three values
 #
 # Results:
 #   - the interpolated value of y
-
 sub _interpolate_angle3 {
     my ( $n, $y ) = @_;
-    die "interpolating factor $n out of range" unless ( -1 < $n ) && ( $n < 1 );
+    my $abslimit = 1;
+
+    my $nolimit = $ENV{'ASTROMB_INTERP_NOLIMIT'} // '';
+    if ($nolimit) {
+        print STDERR "WARNING: interpolating factor $n out of range: $nolimit\n" unless ( -$abslimit < $n ) && ( $n < +$abslimit );
+    }
+    else {
+        # original code
+        die "FATAL: interpolating factor $n out of range" unless ( -$abslimit < $n ) && ( $n < +$abslimit );
+    }
+
 
     my $a = diff_angle( $y->[0], $y->[1], 'radians' );
     my $b = diff_angle( $y->[1], $y->[2], 'radians' );
@@ -51,14 +60,23 @@ sub _interpolate_angle3 {
 # [Meeus-1998; equation 3.3]
 #
 # Parameters:
-#   - `n` : the interpolating factor, must be between -1 and 1
-#   - `y` : a sequence of three values
+#   - `n`       : the interpolating factor, must be between -1 and 1
+#   - `y`       : a sequence of three values
 #
 # Results:
 #   - the interpolated value of y
 sub _interpolate3 {
     my ( $n, $y ) = @_;
-    die "interpolating factor out of range $n" unless ( -1 < $n ) && ( $n < 1 );
+    my $abslimit = 1;
+
+    my $nolimit = $ENV{'ASTROMB_INTERP_NOLIMIT'} // '';
+    if ($nolimit) {
+        print STDERR "WARNING: interpolating factor $n out of range: $nolimit\n" unless ( -$abslimit < $n ) && ( $n < +$abslimit );
+    }
+    else {
+        # original code
+        die "FATAL: interpolating factor out of range $n" unless ( -$abslimit < $n ) && ( $n < +$abslimit );
+    }
 
     my $a = $y->[1] - $y->[0];
     my $b = $y->[2] - $y->[1];
@@ -228,7 +246,7 @@ center of the body at the time of apparent rising or setting, degrees.
 =head2 EVENT FUNCTION
 
 The event function, returned by L</rst_function( %args )>, calculates time of a
-given event (rise, set or trasnsit).
+given event (rise, set, or trasnsit).
 
     $func->( EVENT_TYPE, on_event => sub{ ... }, on_noevent => sub{ ... } );
 

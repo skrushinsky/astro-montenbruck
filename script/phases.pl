@@ -64,8 +64,8 @@ my $display_quarter = sub {
 my $dt = parse_datetime($date);
 $dt->set_time_zone($tzone) if defined($tzone);
 say();
-print_data('Date', $dt->strftime('%F'), scheme => $scheme);
-print_data('Time Zone', $dt->strftime('%Z'), scheme => $scheme);
+print_data('Date', $dt->strftime('%F'), scheme => $scheme, title_width => 14);
+print_data('Time Zone', $dt->strftime('%Z'), scheme => $scheme, title_width => 14);
 say();
 # find New Moon closest to the date
 my $j = search_event([$dt->year, $dt->month, $dt->day], $NEW_MOON);

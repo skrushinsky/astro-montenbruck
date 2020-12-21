@@ -33,6 +33,7 @@ To install this module, run the following commands:
 
 	perl Build.PL
 	./Build
+	./Build installdeps
 	./Build test
 	./Build install
 

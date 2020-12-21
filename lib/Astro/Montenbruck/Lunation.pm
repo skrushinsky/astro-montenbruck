@@ -259,7 +259,7 @@ sub search_event {
     }
     0, zip_unflatten( @A, @A_CORR );
     $j += $s;
-    $j, $F
+    wantarray ? ($j, $F) : $j
 }
 
 
@@ -288,19 +288,14 @@ Astro::Montenbruck::Lunation - Lunar quarters.
   use Astro::Montenbruck::Lunation qw/:all/;
 
   # find instant of New Moon closest to 2019 Aug, 12
-  $jd = search_event(date => [2019, 8, 12], quarter => $NEW_MOON)
-
-  # find instant of Full Moon after the given date
-  $jd = search_quarter(
-      date      => [2019, 8, 12],
-      phase     => $FULL_MOON,
-      direction => $FORWARD
-  );
+  $jd = search_event([2019, 8, 12], $NEW_MOON)
 
 
 =head1 DESCRIPTION
 
-Searches lunar quarters.
+Searches lunar quarters. Algorythms are based on
+I<"Astronomical Algorythms"> by I<Jean Meeus>, I<Second Edition>, I<Willmann-Bell, Inc., 1998>.
+
 
 =head1 EXPORT
 
@@ -341,7 +336,19 @@ C<$FULL_MOON> or C<$LAST_QUARTER> see L</QUARTERS>.
 
 =head3 Returns
 
-I<Standard Julian day> of the event. dynamic time.
+In scalar context returns I<Standard Julian day> of the event, dynamic time.
+
+In list context:
+
+=over
+
+=item * I<Standard Julian day> of the event, dynamic time.
+
+=item * Argument of latitude, arc-degrees. This value is required for detecting elipses.
+
+=back
+
+
 
 =head1 AUTHOR
 

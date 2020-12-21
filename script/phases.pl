@@ -54,7 +54,7 @@ my $display_quarter = sub {
     print colored( sprintf('%-14s', $q), $scheme->{data_row_title} );
     print colored(': ', $scheme->{data_row_title});
     print colored(
-        $dt->strftime('%F %T'),
+        $dt->strftime('%F %H:%M'),
         $scheme->{table_row_data}
     );
     say();

@@ -3,7 +3,7 @@ use 5.22.0;
 use strict;
 use warnings;
 
-our $VERSION = 0.07;
+our $VERSION = 0.08;
 
 1;
 __END__
@@ -56,6 +56,8 @@ of the Sun, the Moon, and the planets amount to about 1″-3″."
 =item * L<Astro::Montenbruck::NutEqu> — Nutation and obliquity of ecliptic.
 
 =item * L<Astro::Montenbruck::RiseSet> — Rise, set, transit and twilight time.
+
+=item * L<Astro::Montenbruck::Lunation> — Lunar phases.
 
 =back
 

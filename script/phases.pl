@@ -50,8 +50,7 @@ my $scheme = do {
 my $display_quarter = sub {
     my ($q, $j) = @_;
     my $dt = DateTime->from_epoch(epoch => jd2unix$j)->set_time_zone($tzone);
-    # my $dt = DateTime->from_epoch( epoch => jd2unix$j ); #->set_time_zone($tzone);
-    # print_data($q, $dt->strftime('%F %T %Z'), scheme => $scheme);
+    # print_data($q, $dt->strftime('%F %T'), scheme => $scheme);
     print colored( sprintf('%-14s', $q), $scheme->{data_row_title} );
     print colored(': ', $scheme->{data_row_title});
     print colored(
@@ -67,11 +66,10 @@ $dt->set_time_zone($tzone) if defined($tzone);
 say();
 print_data('Date', $dt->strftime('%F'), scheme => $scheme);
 print_data('Time Zone', $dt->strftime('%Z'), scheme => $scheme);
-#print_data('Julian Day', sprintf('%.4f', $dt->jd), scheme => $scheme);
 say();
 # find New Moon closest to the date
 my $j = search_event([$dt->year, $dt->month, $dt->day], $NEW_MOON);
-# if the moment is after current time, find the previous one
+# if the event has not happened yet, find the previous one
 if ($j > $dt->jd) {
     my ($y, $m, $d) = jd2cal($j - 28);
     $j = search_event([$y, $m, floor($d)], $NEW_MOON);
@@ -150,7 +148,6 @@ In such cases, use I<offset from Greenwich> format, as described above.
 
 =head1 DESCRIPTION
 
-B<planpos> computes planetary positions for current moment or given
-time and place.
+B<phases>  computes lunar phases around a date.
 
 =cut

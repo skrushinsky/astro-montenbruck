@@ -11,22 +11,27 @@ use List::MoreUtils qw/zip_unflatten/;
 use Astro::Montenbruck::MathUtils qw/reduce_deg polynome/;
 use Astro::Montenbruck::Time qw/is_leapyear day_of_year/;
 
-my @quarters = qw/$NEW_MOON $FIRST_QUARTER $FULL_MOON $LAST_QUARTER/;
-my @funcs    = qw/mean_phase search_event/;
-
-our %EXPORT_TAGS = (
-    quarters  => \@quarters,
-    functions => \@funcs,
-    all       => [ @quarters, @funcs ]
-);
-
-our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
-our $VERSION   = 0.01;
-
 Readonly our $NEW_MOON      => 'New Moon';
 Readonly our $FIRST_QUARTER => 'First Quarter';
 Readonly our $FULL_MOON     => 'Full Moon';
 Readonly our $LAST_QUARTER  => 'Last Quarter';
+
+Readonly::Array our @MONTH => ($NEW_MOON, $FIRST_QUARTER, $FULL_MOON, $LAST_QUARTER);
+Readonly our @QUARTERS => qw/$NEW_MOON $FIRST_QUARTER $FULL_MOON $LAST_QUARTER @MONTH/;
+
+my @funcs = qw/mean_phase search_event/;
+
+
+our %EXPORT_TAGS = (
+    quarters  => \@QUARTERS,
+    functions => \@funcs,
+    all       => [ @QUARTERS, @funcs ]
+);
+
+our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
+our $VERSION   = 0.03;
+
+
 
 Readonly::Array my @NEW_MOON_TERMS => (
     -0.40720, 0.17241,  0.01608,  0.01039,  0.00739,  -0.00514,

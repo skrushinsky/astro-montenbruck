@@ -81,7 +81,7 @@ $ perl script/planpos.pl --help
 
 ## License And Copyright
 
-Copyright (C) 2010-2019 Sergey Krushinsky
+Copyright (C) 2010-2020 Sergey Krushinsky
 
 This program is free software; you can redistribute it and/or modify it under the terms of the the Artistic License (1.0). You may obtain a copy of the full license at:
 

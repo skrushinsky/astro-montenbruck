@@ -20,6 +20,7 @@ use Display qw/%LIGHT_THEME %DARK_THEME print_data/;
 use Astro::Montenbruck::Time qw/jd0 cal2jd jd2cal jd2unix/;
 use Astro::Montenbruck::Lunation qw/:all/;
 
+
 my $now = DateTime->now()->set_locale($LOCALE);
 
 my $help   = 0;
@@ -47,19 +48,6 @@ my $scheme = do {
     }
 };
 
-my $display_quarter = sub {
-    my ($q, $j) = @_;
-    my $dt = DateTime->from_epoch(epoch => jd2unix$j)->set_time_zone($tzone);
-    # print_data($q, $dt->strftime('%F %T'), scheme => $scheme);
-    print colored( sprintf('%-14s', $q), $scheme->{data_row_title} );
-    print colored(': ', $scheme->{data_row_title});
-    print colored(
-        $dt->strftime('%F %H:%M'),
-        $scheme->{table_row_data}
-    );
-    say();
-};
-
 
 my $dt = parse_datetime($date);
 $dt->set_time_zone($tzone) if defined($tzone);
@@ -75,13 +63,26 @@ if ($j > $dt->jd) {
     $j = search_event([$y, $m, floor($d)], $NEW_MOON);
 }
 
-$display_quarter->($NEW_MOON, $j);
+my @month = @MONTH;
+my @quarters = (
+     {type => pop @month, jd => $j, current => 0}
+);
+push @month, $NEW_MOON;
 
-for my $q ($FIRST_QUARTER, $FULL_MOON, $LAST_QUARTER, $NEW_MOON) {
-    my ($y, $m, $d) = jd2cal$j;
+for my $q (@month) {
+    my ($y, $m, $d) = jd2cal $j;
     $j = search_event([$y, $m, floor($d)], $q);
-    $display_quarter->($q, $j);
-} 
+    my $prev = $quarters[$#quarters];
+    $prev->{current} = 1 if ($dt->jd >= $prev->{jd} && $dt->jd < $j);
+    push @quarters, {type => $q, jd => $j, current => 0 }
+}
+
+for my $q (@quarters) {
+    my $dt = DateTime->from_epoch(epoch => jd2unix($q->{jd}))->set_time_zone($tzone);
+    my $mark = $q->{current} ? '*' : ' ';
+    my $data = sprintf('%s %s', $dt->strftime('%F %T'), $mark);
+    print_data($q->{type}, $data, scheme => $scheme, title_width => 14, highlited => $q->{current});
+}
 
 
 
@@ -130,7 +131,7 @@ in format B<+HHMM> / B<-HHMM>, like C<+0300>.
 
 By default, local timezone by default, UTC under Windows.
 
-Please, note: Windows platform does not recognize some time zone names, C<MSK> for instance. 
+Please, note: Windows platform does not recognize some time zone names, C<MSK> for instance.
 In such cases, use I<offset from Greenwich> format, as described above.
 
 

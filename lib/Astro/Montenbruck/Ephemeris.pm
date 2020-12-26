@@ -20,6 +20,7 @@ our $VERSION = 0.01;
 
 use Math::Trig qw/deg2rad/;
 use List::Util qw/any/;
+use Astro::Montenbruck::Ephemeris::Planet::Sun;
 use Astro::Montenbruck::Ephemeris::Planet qw/:ids/;
 use Astro::Montenbruck::NutEqu qw/mean2true/;
 use Astro::Montenbruck::MathUtils qw/diff_angle/;
@@ -54,7 +55,7 @@ sub _iterator {
     my $sun_lbr;
     my $nut_func;
 
-    # Return position of the Sun, that are calculated only once.
+    # Return position of the Sun, that is calculated only once.
     my $get_sun_pos = sub {
         $sun_pos = [ _construct('Planet', $SU)->()->position($t) ]
             unless defined $sun_pos;
@@ -83,7 +84,12 @@ sub _iterator {
         my $id = shift;
         given ($id) {
             when ($SU) {
-                return $get_sun_pos->()
+                return [
+                    Astro::Montenbruck::Ephemeris::Planet::Sun->true2apparent(
+                        $get_sun_pos->(), 
+                        $get_nut_func->()
+                    )
+                ];
             }
             when ($MO) {
                 return [ _construct('Planet', $id)->()->position($t) ]

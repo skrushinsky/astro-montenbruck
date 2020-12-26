@@ -4,8 +4,8 @@ use strict;
 use warnings;
 
 use base qw/Astro::Montenbruck::Ephemeris::Planet/;
-use Math::Trig qw/:pi rad2deg/;
-use Astro::Montenbruck::MathUtils qw /frac ARCS reduce_rad/;
+use Math::Trig qw/:pi rad2deg deg2rad/;
+use Astro::Montenbruck::MathUtils qw /frac ARCS reduce_rad cart polar/;
 use Astro::Montenbruck::Ephemeris::Pert qw/pert/;
 use Astro::Montenbruck::Ephemeris::Planet qw/$SU/;
 
@@ -171,7 +171,21 @@ sub position {
     my $b = $db / ARCS;
 
     rad2deg($l), rad2deg($b),  $r;
+}
 
+
+sub true2apparent {
+  my $pkg = shift;
+  my ($lbr, $nut_func) = @_;
+
+  my ($l0, $b0, $r0) = @$lbr;
+  my ($x, $y, $z) = $nut_func->( cart($r0, deg2rad($b0), deg2rad($l0)));  
+  my ($r, $b, $l) = polar($x, $y, $z);
+
+  # light travel
+  my $lt = 1.365 * $r; # arc-seconds
+  my $l = rad2deg($l) - $lt * 15 / 3600;
+  $l, rad2deg($b),  $r;
 }
 
 1;
@@ -189,8 +203,11 @@ Astro::Montenbruck::Ephemeris::Planet::Sun - Sun.
 =head1 SYNOPSIS
 
   use Astro::Montenbruck::Ephemeris::Planet::Sun;
-  my $planet = Astro::Montenbruck::Ephemeris::Planet::Sun->new();
-  my @geo = $planet->position($t); # apparent geocentric ecliptical coordinates
+  use Astro::Montenbruck::NutEqu qw/mean2true/;
+
+  my $sun = Astro::Montenbruck::Ephemeris::Planet::Sun->new();
+  my @geo = $sun->position($t); # truegeocentric ecliptical coordinates
+  my @app = Astro::Montenbruck::Ephemeris::Planet::Sun->true2apparent(\@geo, mean2true($t)); # apparent coordinates
 
 =head1 DESCRIPTION
 
@@ -205,7 +222,8 @@ Constructor.
 
 =head2 $self->position($t)
 
-Geocentric ecliptic coordinates of the Sun
+Geocentric ecliptic coordinates of the Sun referred to the mean equinox of date
+
 
 =head3 Arguments
 
@@ -217,7 +235,7 @@ Geocentric ecliptic coordinates of the Sun
 
 =head3 Returns
 
-Hash of geocentric ecliptical coordinates.
+Array of geocentric ecliptical coordinates.
 
 =over
 
@@ -228,6 +246,39 @@ Hash of geocentric ecliptical coordinates.
 =item * B<z> — distance from Earth, AU
 
 =back
+
+=head2 $class->true2apparent($lbr, $nut_func)
+
+Convert true geocentric to apparent coordinates, i.e. corrected 
+for I<nutation> and I<light time travel>
+
+=head3 Arguments
+
+=over
+
+=item B<$lbr> — arrayref to cordinates returned by L<position> method
+
+=item B<nut_func> — function for calculation of I<delta-psi>,  nutation in longitude, 
+                see: L<Astro::Montenbruck::NutEqu::mean2true>
+
+=back
+
+=head3 Returns
+
+Array of geocentric ecliptical coordinates.
+
+=over
+
+=item * B<x> — geocentric longitude, arc-degrees
+
+=item * B<y> — geocentric latitude, arc-degrees
+
+=item * B<z> — distance from Earth, AU
+
+=back
+
+
+
 
 =head1 AUTHOR
 

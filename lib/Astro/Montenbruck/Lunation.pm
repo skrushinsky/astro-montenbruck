@@ -270,9 +270,9 @@ sub search_event {
 
 sub is_eclipse_possible {
     my $f = shift;
-    my $s = abs sin(deg2rad($f));
-    return 0 if $s > 0.36; # no eclipse
-
+    my $s = sin(deg2rad($f));
+    return 0 if abs $s > 0.36; # no eclipse
+    1;
 }
 
 
@@ -319,6 +319,16 @@ I<"Astronomical Algorythms"> by I<Jean Meeus>, I<Second Edition>, I<Willmann-Bel
 =item * C<$LAST_QUARTER>
 
 =back
+
+=head3 MONTH
+
+=over
+
+=item * C<@MONTH> 
+
+=back
+
+Array of L<QUARTERS> in proper order.
 
 
 =head1 SUBROUTINES

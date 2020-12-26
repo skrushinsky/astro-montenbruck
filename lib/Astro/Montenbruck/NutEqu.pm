@@ -115,7 +115,7 @@ Returns function for transforming of mean to true coordinates.
 
 =head3 Returns
 
-Function which takes I<mean> ecliptic geocentric coordinates of the planet X, Y, Z
+Function which takes I<mean> ecliptic geocentric coordinates C<X, Y, Z>
 of a planet and returns I<true> coordinates, i.e. corrected for
 L<nutation in ecliptic and obliquity>.
 

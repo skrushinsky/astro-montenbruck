@@ -16,12 +16,11 @@ our %EXPORT_TAGS = (
     all  => [ qw/iterator find_positions/ ],
 );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} }, );
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 use Math::Trig qw/deg2rad/;
 use List::Util qw/any/;
-use Astro::Montenbruck::Ephemeris::Planet::Sun;
-use Astro::Montenbruck::Ephemeris::Planet qw/:ids/;
+use Astro::Montenbruck::Ephemeris::Planet qw/:ids true2apparent light_travel/;
 use Astro::Montenbruck::NutEqu qw/mean2true/;
 use Astro::Montenbruck::MathUtils qw/diff_angle/;
 
@@ -84,20 +83,28 @@ sub _iterator {
         my $id = shift;
         given ($id) {
             when ($SU) {
+                my ($sl, $sb, $sr) = $get_sun_pos->();
+                $sl -= light_travel($sr);                
                 return [
-                    Astro::Montenbruck::Ephemeris::Planet::Sun->true2apparent(
-                        $get_sun_pos->(), 
+                    true2apparent(
+                        [$sl, $sb, $sr], 
                         $get_nut_func->()
                     )
-                ];
+                ]
             }
             when ($MO) {
-                return [ _construct('Planet', $id)->()->position($t) ]
+                return [
+                    true2apparent(
+                        [_construct('Planet', $id)->()->position($t)],
+                        $get_nut_func->()
+                    )
+                ];                
             }
             default {
                 return [
-                    _construct('Planet', $id)->()->position(
-                        $t,  $get_sun_lbr->(), $get_nut_func->()
+                    true2apparent(
+                        [_construct('Planet', $id)->()->position( $t,  $get_sun_lbr->() )],
+                        $get_nut_func->()
                     )
                 ]
             }

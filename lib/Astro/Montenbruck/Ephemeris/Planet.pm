@@ -3,10 +3,10 @@ use strict;
 use warnings;
 
 use Readonly;
-use Math::Trig qw/:pi rad2deg/;
-use Astro::Montenbruck::MathUtils qw/frac polar/;
+use Math::Trig qw/:pi rad2deg deg2rad/;
+use Astro::Montenbruck::MathUtils qw/frac polar cart  /;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 Readonly our $MO => 'Moon';
 Readonly our $SU => 'Sun';
@@ -24,9 +24,11 @@ Readonly::Array our @PLANETS =>
 
 use Exporter qw/import/;
 
-our %EXPORT_TAGS = ( ids => [qw/$MO $SU $ME $VE $MA $JU $SA $UR $NE $PL/], );
-
-our @EXPORT_OK = ( @{ $EXPORT_TAGS{'ids'} }, '@PLANETS' );
+our %EXPORT_TAGS = ( 
+  ids   => [ qw/$MO $SU $ME $VE $MA $JU $SA $UR $NE $PL/ ], 
+  funcs => [ qw/true2apparent light_travel/ ] 
+);
+our @EXPORT_OK = ( @{ $EXPORT_TAGS{'ids'} }, '@PLANETS', @{ $EXPORT_TAGS{'funcs'} });
 
 sub new {
     my ( $class, %arg ) = @_;
@@ -78,7 +80,7 @@ sub _geocentric {
     my $delta0 = sqrt( $x * $x + $y * $y + $z * $z );
     my $fac    = 0.00578 * $delta0 * 1E-4;
 
-    # apparent
+    # correct for light travel
     $x -= $fac * ( $vx + $vxs );
     $y -= $fac * ( $vy + $vys );
     $z -= $fac * ( $vz + $vzs );
@@ -87,21 +89,38 @@ sub _geocentric {
 }
 
 sub position {
-    my ( $self, $t, $sun, $nut_func ) = @_;
+    my ( $self, $t, $sun ) = @_;
     my ( $l, $b, $r ) = $self->heliocentric($t);
-    # geocentric ecliptic coordinates (light-time corrected)
-    my ( $rad, $the, $phi ) = polar(
-        $nut_func->(
-            $self->_geocentric( $t, { l => $l, b => $b, r => $r }, $sun )
-        )
-    );
+
+    # true geocentric ecliptic coordinates (light-time corrected) 
+    my ($x, $y, $z) = $self->_geocentric( $t, { l => $l, b => $b, r => $r }, $sun );
+    my ($r, $b, $l) = polar($x, $y, $z);
     # convert to degrees
-    rad2deg($phi), rad2deg($the), $rad;
+    rad2deg($l), rad2deg($b), $r;
 }
+
+
+sub true2apparent {
+  my ($lbr, $nut_func) = @_;
+
+  my ($l0, $b0, $r0) = @$lbr;
+  my ($x, $y, $z) = $nut_func->( cart($r0, deg2rad($b0), deg2rad($l0)));  
+  my ($r, $b, $l) = polar($x, $y, $z);
+  rad2deg($l), rad2deg($b), $r;
+}
+
 
 sub heliocentric {
     die "Must be overriden by a descendant";
 }
+
+
+sub light_travel {
+  my $r = shift;
+  my $lt = 1.365 * $r; # arc-seconds
+  $lt * 15 / 3600; # arc-degrees
+}
+
 
 1;
 __END__
@@ -139,7 +158,7 @@ Constructor. B<$id> is identifier from C<@PLANETS> array (See L</"EXPORTED CONST
 
 =head2 $self->position($t, $sun)
 
-Geocentric ecliptic coordinates of a planet
+Geocentric ecliptic coordinates of a planet, referred to the true equinox of date.
 
 =head3 Arguments
 
@@ -211,6 +230,64 @@ ecliptical coordinates C<($l, $b, $r)>.
 =item * C<$PL> — Pluto
 
 =item * C<@PLANETS> — array containing all the ids listed above
+
+=back
+
+
+=head2 true2apparent($lbr, $nut_func)
+
+Convert true geocentric to apparent coordinates, i.e. corrected 
+for I<nutation> and I<light time travel>
+
+=head3 Arguments
+
+=over
+
+=item B<$lbr> — arrayref to cordinates returned by L<position> method
+
+=item B<nut_func> — function for calculation of I<delta-psi>,  nutation in longitude, 
+                see: L<Astro::Montenbruck::NutEqu::mean2true>
+
+=back
+
+=head3 Returns
+
+Array of geocentric ecliptical coordinates, referred to the tue equinox of date.
+
+=over
+
+=item * B<x> — geocentric longitude, arc-degrees
+
+=item * B<y> — geocentric latitude, arc-degrees
+
+=item * B<z> — distance from Earth, AU
+
+=back
+
+=head2 light_travel($delta)
+
+I<Light-time travel> correction. Must be subtracted from true the longitude: 
+
+  $lambda -= light_travel($delta);
+
+Do not apply this correction to longitude of the planets (Mercury - Venus), obtained by
+L<position> method, it's already taken into account.
+
+=head3 Arguments
+
+=over
+
+=item B<$delta> — distance from Earth, AU
+
+=back
+
+=head3 Returns
+
+Array of geocentric ecliptical coordinates.
+
+=over
+
+=item * correction in arc-degrees
 
 =back
 

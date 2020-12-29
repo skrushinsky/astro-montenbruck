@@ -3,6 +3,7 @@ package Astro::Montenbruck::Ephemeris::Planet::Moon;
 use strict;
 use warnings;
 
+use Readonly;
 use Math::Trig qw/:pi rad2deg/;
 use Astro::Montenbruck::Ephemeris::Planet;
 use base qw/Astro::Montenbruck::Ephemeris::Planet/;
@@ -11,6 +12,9 @@ use Astro::Montenbruck::MathUtils qw /frac sine ARCS reduce_deg/;
 use Astro::Montenbruck::Ephemeris::Pert qw /addthe/;
 
 our $VERSION = 0.01;
+
+Readonly our $ARC => 206264.81; # 3600 * 180 / PI = arcsec per radian
+Readonly our $RADII_TO_AU => 4.26354E-5;
 
 sub new {
     my $class = shift;
@@ -312,15 +316,12 @@ sub position {
 
     # equatorial horizontal parallax
     $sinpi *= 0.999953253;
-
-    # the original: wrong value my $r = ARCS / $sinpi;
-    my $delta = 8.794 / $sinpi;
+    # my $delta = 8.794 / $sinpi;
+    my $delta = $ARC /  $sinpi * $RADII_TO_AU;
 
     $lambda, $beta, $delta
 
 }
-
-
 
 1;
 
@@ -343,7 +344,10 @@ Astro::Montenbruck::Ephemeris::Planet::Moon - Moon.
 =head1 DESCRIPTION
 
 Child class of L<Astro::Montenbruck::Ephemeris::Planet>, responsible for calculating
-B<Moon> position.
+B<Moon> position for the I<equinox of date>.
+
+Formulae are based on analytical theory of by E.E.Brown (Improved Lunar Ephemeris)
+with accuracy of approx. 1 arc-second.
 
 =head1 METHODS
 
@@ -353,13 +357,13 @@ Constructor.
 
 =head2 $self->position($t)
 
-Geocentric ecliptic coordinates of the Moon
+Geocentric ecliptic coordinates of the Moon. The coordinates are referred to the I<mean equinox od date>
 
 =head3 Arguments
 
 =over
 
-=item B<$t> — time in Julian centuries since J2000: (JD-2451545.0)/36525.0
+=item B<$t> — time in Julian centuries since J2000: C<(JD-2451545.0)/36525.0>
 
 =back
 

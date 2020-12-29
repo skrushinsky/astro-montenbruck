@@ -83,11 +83,11 @@ sub _iterator {
         my $id = shift;
         given ($id) {
             when ($SU) {
-                my ($sl, $sb, $sr) = $get_sun_pos->();
-                $sl -= light_travel($sr);                
+                my ($sl, $sb, $sr) = @{$get_sun_pos->()};
+                $sl -= light_travel($sr);
                 return [
                     true2apparent(
-                        [$sl, $sb, $sr], 
+                        [$sl, $sb, $sr],
                         $get_nut_func->()
                     )
                 ]
@@ -98,7 +98,7 @@ sub _iterator {
                         [_construct('Planet', $id)->()->position($t)],
                         $get_nut_func->()
                     )
-                ];                
+                ];
             }
             default {
                 return [

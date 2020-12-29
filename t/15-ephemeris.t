@@ -8,7 +8,7 @@ our $VERSION = 0.01;
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
 use Test::More;
-use Test::Number::Delta within => 1e-5;
+use Test::Number::Delta within => 1e-3;
 
 BEGIN {
 	use_ok( 'Astro::Montenbruck::Ephemeris', qw/:all/ );
@@ -20,7 +20,7 @@ my $data;
 my @ids;
 
 BEGIN {
-    my $path = "$Bin/19650201.txt";
+    my $path = "$Bin/19650201-sweph.txt";
     open(my $TEST, '<', $path) or die "Could not open $path: $!\n";
 
     while(<$TEST>) {

@@ -24,9 +24,9 @@ Readonly::Array our @PLANETS =>
 
 use Exporter qw/import/;
 
-our %EXPORT_TAGS = ( 
-  ids   => [ qw/$MO $SU $ME $VE $MA $JU $SA $UR $NE $PL/ ], 
-  funcs => [ qw/true2apparent light_travel/ ] 
+our %EXPORT_TAGS = (
+  ids   => [ qw/$MO $SU $ME $VE $MA $JU $SA $UR $NE $PL/ ],
+  funcs => [ qw/true2apparent light_travel/ ]
 );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'ids'} }, '@PLANETS', @{ $EXPORT_TAGS{'funcs'} });
 
@@ -92,9 +92,9 @@ sub position {
     my ( $self, $t, $sun ) = @_;
     my ( $l, $b, $r ) = $self->heliocentric($t);
 
-    # true geocentric ecliptic coordinates (light-time corrected) 
+    # true geocentric ecliptic coordinates (light-time corrected)
     my ($x, $y, $z) = $self->_geocentric( $t, { l => $l, b => $b, r => $r }, $sun );
-    my ($r, $b, $l) = polar($x, $y, $z);
+    ($r, $b, $l) = polar($x, $y, $z);
     # convert to degrees
     rad2deg($l), rad2deg($b), $r;
 }
@@ -104,9 +104,9 @@ sub true2apparent {
   my ($lbr, $nut_func) = @_;
 
   my ($l0, $b0, $r0) = @$lbr;
-  my ($x, $y, $z) = $nut_func->( cart($r0, deg2rad($b0), deg2rad($l0)));  
+  my ($x, $y, $z) = $nut_func->( cart($r0, deg2rad($b0), deg2rad($l0)));
   my ($r, $b, $l) = polar($x, $y, $z);
-  rad2deg($l), rad2deg($b), $r;
+  rad2deg($l), rad2deg($b), $r
 }
 
 
@@ -236,7 +236,7 @@ ecliptical coordinates C<($l, $b, $r)>.
 
 =head2 true2apparent($lbr, $nut_func)
 
-Convert true geocentric to apparent coordinates, i.e. corrected 
+Convert true geocentric to apparent coordinates, i.e. corrected
 for I<nutation> and I<light time travel>
 
 =head3 Arguments
@@ -245,7 +245,7 @@ for I<nutation> and I<light time travel>
 
 =item B<$lbr> — arrayref to cordinates returned by L<position> method
 
-=item B<nut_func> — function for calculation of I<delta-psi>,  nutation in longitude, 
+=item B<nut_func> — function for calculation of I<delta-psi>,  nutation in longitude,
                 see: L<Astro::Montenbruck::NutEqu::mean2true>
 
 =back
@@ -266,7 +266,7 @@ Array of geocentric ecliptical coordinates, referred to the tue equinox of date.
 
 =head2 light_travel($delta)
 
-I<Light-time travel> correction. Must be subtracted from true the longitude: 
+I<Light-time travel> correction. Must be subtracted from true the longitude:
 
   $lambda -= light_travel($delta);
 

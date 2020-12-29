@@ -153,7 +153,7 @@ sub position {
     0.58 * cos( $d + $m3 ) +
     0.57 * cos( $d - $m3 );
 
-  $db += +0.576 * sin($u);
+  $db += 0.576 * sin($u);
 
   # long-periodic perturbations
   $dl +=
@@ -169,10 +169,10 @@ sub position {
             ( ( 6191.2 + 1.1 * $t ) * $t + $dl ) / 1296.0e3
       )
   );
-  my $r = 1.0001398 - 0.0000007 * $t + $dr * 1.0e-6;
-  my $b = $db / ARCS;
+  my $r = 1.0001398 - 0.0000007 * $t + $dr * 1e-6;
+  my $b = $db / 3600;
 
-  rad2deg($l), rad2deg($b),  $r;
+  rad2deg($l), $b,  $r;
 }
 
 
@@ -191,11 +191,12 @@ Astro::Montenbruck::Ephemeris::Planet::Sun - Sun.
 =head1 SYNOPSIS
 
   use Astro::Montenbruck::Ephemeris::Planet::Sun;
+  use Astro::Montenbruck::Ephemeris::Planet qw/true2apparent/;
   use Astro::Montenbruck::NutEqu qw/mean2true/;
 
   my $sun = Astro::Montenbruck::Ephemeris::Planet::Sun->new();
-  my @geo = $sun->position($t); # truegeocentric ecliptical coordinates
-  my @app = Astro::Montenbruck::Ephemeris::Planet::Sun->true2apparent(\@geo, mean2true($t)); # apparent coordinates
+  my @lbr = $sun->position($t); # true geocentric ecliptical coordinates
+  my @app = true2apparent(\@lbr, mean2true($t)); # apparent coordinates
 
 =head1 DESCRIPTION
 
@@ -210,7 +211,7 @@ Constructor.
 
 =head2 $self->position($t)
 
-Geocentric ecliptic coordinates of the Sun referred to the mean equinox of date
+Geocentric ecliptic coordinates of the Sun referred to the I<mean equinox of date>.
 
 
 =head3 Arguments

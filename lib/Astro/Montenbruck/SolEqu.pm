@@ -50,9 +50,9 @@ sub solequ {
     do {
         $last_x = $x;
         my $t = jd_cent($j);
-        my @geo = $sun->position($t); # apparent geocentric ecliptical coordinates
-        ($x) = Astro::Montenbruck::Ephemeris::Planet::Sun->true2apparent(
-            \@geo, $nut_func); # apparent coordinates
+        my @lbr = $sun->sunpos($t);
+        my $nut_func = mean2true($t);
+        ($x) =  $sun->apparent($t, \@lbr, $nut_func); # apparent geocentric ecliptical coordinates
         $j += 58 * sin(deg2rad($k90 - $x));
         print("j = $j, x = $x, last_x = $last_x\n")
     } until(angle_c($k90, $x) < $DELTA || $x == $last_x);

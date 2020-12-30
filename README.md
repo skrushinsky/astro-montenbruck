@@ -22,6 +22,7 @@ As the book authors state in Introduction to the 4-th edition, _"The errors in t
 - [Astro::Montenbruck::NutEqu](lib/Astro/Montenbruck/NutEqu.pm) — Nutation and obliquity of ecliptic.
 - [Astro::Montenbruck::RiseSet](lib/Astro/Montenbruck/RiseSet.pm) — Rise, set, transit and twilight time.
 - [Astro::Montenbruck::Lunation](lib/Astro/Montenbruck/Lunation.pm) — Lunar phases
+- [Astro::Montenbruck::Lunation](lib/Astro/Montenbruck/SolEqu.pm) — Solstices and equinoxes
 
 
 ## Requirements
@@ -62,9 +63,15 @@ $ perl script/createdocs.pl
 
 Documentation files will be installed to **docs/** directory.
 
-## Usage
+## Scripts
 
 [script/](script/) directory contains examples of the library usage. They will be extended over time.
+
+* **planpos.pl** — positions of Sun, Moon and the planets
+* **riseset.pl** — rises and sets of celestial objects 
+* **phases.pl** — lunar phases
+
+### Example
 
 To display current planetary positions, type:
 

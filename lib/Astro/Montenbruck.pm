@@ -19,7 +19,7 @@ Montenbruck - Lightweight Ephemeris
 
 =head1 DESCRIPTION
 
-Library of astronomical calculations, based on
+Library of astronomical calculations, based mainly on
 I<"Astronomy On The Personal Computer"> by I<O.Montenbruck> and I<T.Phleger>,
 I<Fourth Edition, Springer-Verlag, 2000>.
 
@@ -58,6 +58,8 @@ of the Sun, the Moon, and the planets amount to about 1″-3″."
 =item * L<Astro::Montenbruck::RiseSet> — Rise, set, transit and twilight time.
 
 =item * L<Astro::Montenbruck::Lunation> — Lunar phases.
+
+=item * L<Astro::Montenbruck::SolEqu> — Solstices and equinoxes
 
 =back
 

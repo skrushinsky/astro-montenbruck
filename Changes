@@ -13,3 +13,5 @@ Revision history for AstroScript
 
 2020-12-26 - Solstices and Equinoxes 
              Aparent position of the Sun
+2020-12-31 - Apparent positions of the objects, Planet interface changed
+             Numerous bugfixes

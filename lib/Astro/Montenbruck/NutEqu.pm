@@ -8,7 +8,7 @@ use Math::Trig qw/:pi/;
 use Astro::Montenbruck::MathUtils qw/frac ARCS polynome/;
 
 our @EXPORT_OK = qw/mean2true obliquity deltas/;
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 sub deltas {
     my $t    = shift;
@@ -33,20 +33,39 @@ sub deltas {
     $dpsi, $deps
 }
 
+
+# Conversion of ecliptic into equatorial coordinates 
+sub _eclequ {
+  my ($rct, $cos_eps, $sin_eps) = @_;
+  my ($x, $y, $z) = @$rct;
+  $x, $cos_eps * $y - $sin_eps * $z, $sin_eps * $y + $cos_eps * $z
+}
+
+# Conversion of equatorial rectangular into ecliptic rectangular coordinates
+sub _equecl {
+  my ($rct, $cos_eps, $sin_eps) = @_;
+  my ($x, $y, $z) = @$rct;
+  $x, $cos_eps * $y + $sin_eps * $z, -$sin_eps * $y + $cos_eps * $z
+}
+
+
 sub mean2true {
     my $t = shift;
     my ($dpsi, $deps) = deltas($t);
     my $eps  = 0.4090928 - 2.2696E-4 * $t; # obliquity of the ecliptic
-    my $c  = $dpsi * cos($eps);
-    my $s  = $dpsi * sin($eps);
+    my $ce = cos($eps);
+    my $se = sin($eps);    
+    
+    my $c  = $dpsi * $ce;
+    my $s  = $dpsi * $se;
 
     sub {
-        my ($x, $y, $z) = @_;
+        my $ecl = shift;
+        my ($x, $y, $z) = _eclequ($ecl, $ce, $se);
         my $dx = -( $c * $y + $s * $z );
         my $dy =  ( $c * $x - $deps * $z );
         my $dz =  ( $s * $x + $deps * $y );
-
-        $x + $dx, $y + $dy, $z + $dz
+        _equecl([$x + $dx, $y + $dy, $z + $dz], $ce, $se);
     }
 }
 
@@ -101,7 +120,7 @@ Given time in Julian centuries since J200, return delta-psi and delta-eps.
 C<($delta_psi, $delta_eps)>, in arc-degrees.
 
 
-=head2 mean2true( $t )
+=head2 mean2true($t)
 
 Returns function for transforming of mean to true coordinates.
 
@@ -115,9 +134,9 @@ Returns function for transforming of mean to true coordinates.
 
 =head3 Returns
 
-Function which takes I<mean> ecliptic geocentric coordinates C<X, Y, Z>
-of a planet and returns I<true> coordinates, i.e. corrected for
-L<nutation in ecliptic and obliquity>.
+Function which takes mean ecliptic geocentric rectangular coordinates C<X, Y, Z>
+of a planet and returns ecliptic rectangular coordinates, referred to the I<equinox of date>. 
+
 
 =head2 obliquity( $t )
 

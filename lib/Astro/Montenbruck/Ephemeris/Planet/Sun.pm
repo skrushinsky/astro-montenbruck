@@ -16,9 +16,7 @@ sub new {
     $class->SUPER::new( id => $SU );
 }
 
-sub position {
-
-
+sub sunpos {
   my ( $self, $t ) = @_;
 
   # mean anomalies of planets and mean arguments of lunar orbit [rad]
@@ -176,6 +174,27 @@ sub position {
 }
 
 
+sub _lbr_geo { 0, 0, 0 }
+
+
+sub apparent {
+  my $self = shift;
+  my ($t, $lbr, $nut_func) = @_;
+  my ($l, $b, $r) = @$lbr;
+  # geocentric ecliptic coordinates (light-time corrected, referred to the mean equinox of date)
+  my @mean = $self->_geocentric(
+    $t, 
+    { l => 0, b => 0, r => 0 }, 
+    { l => deg2rad($l), b => deg2rad($b), r => $r }
+  );   
+  # true equinox of date
+  my @date = $nut_func->(\@mean);
+  # rectangular -> polar
+  ($r, $b, $l) = polar(@date);
+  rad2deg($l), rad2deg($b), $r  
+}
+
+
 1;
 
 __END__
@@ -191,12 +210,14 @@ Astro::Montenbruck::Ephemeris::Planet::Sun - Sun.
 =head1 SYNOPSIS
 
   use Astro::Montenbruck::Ephemeris::Planet::Sun;
-  use Astro::Montenbruck::Ephemeris::Planet qw/true2apparent/;
-  use Astro::Montenbruck::NutEqu qw/mean2true/;
+  Astro::Montenbruck::NutEqu qw/mean2true/;
 
   my $sun = Astro::Montenbruck::Ephemeris::Planet::Sun->new();
-  my @lbr = $sun->position($t); # true geocentric ecliptical coordinates
-  my @app = true2apparent(\@lbr, mean2true($t)); # apparent coordinates
+  my ($l, $b, $r) = $sun->sunpos($t); # true geocentric ecliptical coordinates
+
+  my $nut_func = mean2true($t);
+  # apparent geocentric ecliptical coordinates
+  my ($lambda, $beta, $delta) = $sun->apparent($t, [$l, $b, $r], $nut_func); 
 
 =head1 DESCRIPTION
 
@@ -209,10 +230,9 @@ B<Sun> position.
 
 Constructor.
 
-=head2 $self->position($t)
+=head2 $self->sunpos($t)
 
-Geocentric ecliptic coordinates of the Sun referred to the I<mean equinox of date>.
-
+Ecliptic coordinates L, B, R (in deg and AU) of the Sun referred to the I<mean equinox of date>.  
 
 =head3 Arguments
 

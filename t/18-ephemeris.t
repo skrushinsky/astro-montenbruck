@@ -20,7 +20,7 @@ my $data;
 my @ids;
 
 BEGIN {
-    my $path = "$Bin/19650201-sweph.txt";
+    my $path = "$Bin/19650201.txt";
     open(my $TEST, '<', $path) or die "Could not open $path: $!\n";
 
     while(<$TEST>) {

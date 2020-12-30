@@ -4,14 +4,14 @@ use strict;
 use warnings;
 
 use Readonly;
-use Math::Trig qw/:pi rad2deg/;
+use Math::Trig qw/:pi rad2deg deg2rad/;
 use Astro::Montenbruck::Ephemeris::Planet;
 use base qw/Astro::Montenbruck::Ephemeris::Planet/;
 use Astro::Montenbruck::Ephemeris::Planet qw/$MO/;
-use Astro::Montenbruck::MathUtils qw /frac sine ARCS reduce_deg/;
+use Astro::Montenbruck::MathUtils qw /frac sine ARCS reduce_deg cart polar/;
 use Astro::Montenbruck::Ephemeris::Pert qw /addthe/;
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 Readonly our $ARC => 206264.81; # 3600 * 180 / PI = arcsec per radian
 Readonly our $RADII_TO_AU => 4.26354E-5;
@@ -65,7 +65,7 @@ sub _long_periodic {
     $dl0, $dl, $dls, $df, $dd, $dgam;
 }
 
-sub position {
+sub moonpos {
     my ( $self, $t ) = @_;
     my ( %co, %si );
     my ( $dlam, $ds, $gam1c, $n );
@@ -320,7 +320,20 @@ sub position {
     my $delta = $ARC /  $sinpi * $RADII_TO_AU;
 
     $lambda, $beta, $delta
+}
 
+
+sub apparent {
+  my $self = shift;
+  my ($mean, $nut_func) = @_;
+  my ($l, $b, $r) = @$mean;
+  # polar -> rectangular
+  my ($x, $y, $z) = cart($r, deg2rad($b), deg2rad($l));
+  # true equinox of date
+  my @date = $nut_func->([$x, $y, $z]);
+  # rectangular -> polar
+  ($r, $b, $l) = polar(@date);
+  rad2deg($l), rad2deg($b), $r  
 }
 
 1;
@@ -339,12 +352,12 @@ Astro::Montenbruck::Ephemeris::Planet::Moon - Moon.
 
   use Astro::Montenbruck::Ephemeris::Planet::Moon;
   my $planet = Astro::Montenbruck::Ephemeris::Planet::Moon->new();
-  my @geo = $planet->position($t); # apparent geocentric ecliptical coordinates
+  my @geo = $planet->moonpos($t); # apparent geocentric ecliptical coordinates
 
 =head1 DESCRIPTION
 
 Child class of L<Astro::Montenbruck::Ephemeris::Planet>, responsible for calculating
-B<Moon> position for the I<equinox of date>.
+B<Moon> position for the I<mean equinox of date>.
 
 Formulae are based on analytical theory of by E.E.Brown (Improved Lunar Ephemeris)
 with accuracy of approx. 1 arc-second.
@@ -355,7 +368,7 @@ with accuracy of approx. 1 arc-second.
 
 Constructor.
 
-=head2 $self->position($t)
+=head2 $self->moonpos($t)
 
 Geocentric ecliptic coordinates of the Moon. The coordinates are referred to the I<mean equinox od date>
 

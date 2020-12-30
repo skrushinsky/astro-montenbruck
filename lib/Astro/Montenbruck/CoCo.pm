@@ -12,7 +12,7 @@ Readonly::Scalar our $ECL => 1;
 Readonly::Scalar our $EQU => 2;
 
 our %EXPORT_TAGS = (
-    all => [ qw/ecl2equ equ2ecl equ2hor hor2equ/ ],
+    all => [ qw/ecl2equ equ2ecl equ2hor hor2equ ecl2equ_rect equ2ecl_rect/ ],
 );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} }, qw/$ECL $EQU/ );
@@ -71,6 +71,7 @@ sub equ2hor {
 sub hor2equ {
     equ2hor(@_)
 }
+
 
 
 1;

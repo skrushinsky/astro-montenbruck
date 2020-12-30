@@ -6,7 +6,7 @@ use Readonly;
 use Math::Trig qw/:pi rad2deg deg2rad/;
 use Astro::Montenbruck::MathUtils qw/frac polar cart  /;
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 Readonly our $MO => 'Moon';
 Readonly our $SU => 'Sun';
@@ -54,6 +54,7 @@ sub _posvel {
     $x, $y, $z, $vx, $vy, $vz;
 }
 
+# geocentric ecliptic coordinates (light-time corrected)
 sub _geocentric {
     my ( $self, $t, $hpla_ref, $gsun_ref ) = @_;
 
@@ -88,25 +89,17 @@ sub _geocentric {
     $x, $y, $z # ecliptic geocentric coordinates of the planet
 }
 
-sub position {
-    my ( $self, $t, $sun ) = @_;
-    my ( $l, $b, $r ) = $self->heliocentric($t);
-
-    # true geocentric ecliptic coordinates (light-time corrected)
-    my ($x, $y, $z) = $self->_geocentric( $t, { l => $l, b => $b, r => $r }, $sun );
-    ($r, $b, $l) = polar($x, $y, $z);
-    # convert to degrees
+sub apparent {
+    my $self = shift;
+    my ( $t, $lbr, $sun, $nut_func ) = @_;
+     my ( $l, $b, $r ) = @$lbr; # $self->heliocentric($t);
+    # geocentric ecliptic coordinates (light-time corrected, referred to the mean equinox of date)
+    my @mean = $self->_geocentric( $t, { l => $l, b => $b, r => $r }, $sun );
+    # true equinox of date
+    my @date = $nut_func->(\@mean);
+    # rectangular -> polar
+    ($r, $b, $l) = polar(@date);
     rad2deg($l), rad2deg($b), $r;
-}
-
-
-sub true2apparent {
-  my ($lbr, $nut_func) = @_;
-
-  my ($l0, $b0, $r0) = @$lbr;
-  my ($x, $y, $z) = $nut_func->( cart($r0, deg2rad($b0), deg2rad($l0)));
-  my ($r, $b, $l) = polar($x, $y, $z);
-  rad2deg($l), rad2deg($b), $r
 }
 
 
@@ -115,11 +108,6 @@ sub heliocentric {
 }
 
 
-sub light_travel {
-  my $r = shift;
-  my $lt = 1.365 * $r; # arc-seconds
-  $lt * 15 / 3600; # arc-degrees
-}
 
 
 1;
@@ -156,7 +144,7 @@ method.
 
 Constructor. B<$id> is identifier from C<@PLANETS> array (See L</"EXPORTED CONSTANTS">).
 
-=head2 $self->position($t, $sun)
+=head2 $self->apparent($t, $lbr, $sun, $nut_func)
 
 Geocentric ecliptic coordinates of a planet, referred to the true equinox of date.
 
@@ -166,11 +154,24 @@ Geocentric ecliptic coordinates of a planet, referred to the true equinox of dat
 
 =item *
 
-B<$t> — time in Julian centuries since J2000: C<(JD-2451545.0)/36525.0>
+B<$t> — time in Julian centuries since J2000: C<(JD-2451545.0) / 36525.0>
 
 =item *
 
-B<$sun> — ecliptic geocentric coordinates of the Sun (hashref with B<'x'>, B<'y'>, B<'z'> keys)
+B<$lbr> — arrayref of heliocentric coordinates of the planet
+          returned by L<$self-&gt;heliocentric($t)>
+
+=item *
+
+B<$sun> — ecliptic geocentric coordinates of the Sun (hashref with B<'l'>, B<'b'>, B<'r'> keys),
+          returned by L<Astro::Montenbruck::Ephemeris::Planet::Sun::sunpos($t)>
+
+
+=item *
+
+B<$nut_func> — function for converting geocntric coordinates from mean to true equinox of date,
+          returned by L<Astro::Montenbruck::NutEqu::mean2true($t)>
+
 
 =back
 
@@ -190,14 +191,14 @@ Array of geocentric ecliptical coordinates.
 
 =head2 $self->heliocentric($t)
 
-Given time in centuries since epoch 2000.0, calculate apparent geocentric
-ecliptical coordinates C<($l, $b, $r)>.
+Given time in centuries since epoch 2000.0, calculate heliocentric ecliptical 
+coordinates C<($l, $b, $r)>.
 
 =over
 
-=item * B<$l> — longitude, radians
+=item * B<$l> — longitude, arc-degrees
 
-=item * B<$b> — latitude, radians
+=item * B<$b> — latitude, arc-degrees
 
 =item * B<$r> — distance from Earth, A.U.
 
@@ -233,63 +234,6 @@ ecliptical coordinates C<($l, $b, $r)>.
 
 =back
 
-
-=head2 true2apparent($lbr, $nut_func)
-
-Convert true geocentric to apparent coordinates, i.e. corrected
-for I<nutation> and I<light time travel>
-
-=head3 Arguments
-
-=over
-
-=item B<$lbr> — arrayref to cordinates returned by L<position> method
-
-=item B<nut_func> — function for calculation of I<delta-psi>,  nutation in longitude,
-                see: L<Astro::Montenbruck::NutEqu::mean2true>
-
-=back
-
-=head3 Returns
-
-Array of geocentric ecliptical coordinates, referred to the tue equinox of date.
-
-=over
-
-=item * B<x> — geocentric longitude, arc-degrees
-
-=item * B<y> — geocentric latitude, arc-degrees
-
-=item * B<z> — distance from Earth, AU
-
-=back
-
-=head2 light_travel($delta)
-
-I<Light-time travel> correction. Must be subtracted from true the longitude:
-
-  $lambda -= light_travel($delta);
-
-Do not apply this correction to longitude of the planets (Mercury - Venus), obtained by
-L<position> method, it's already taken into account.
-
-=head3 Arguments
-
-=over
-
-=item B<$delta> — distance from Earth, AU
-
-=back
-
-=head3 Returns
-
-Array of geocentric ecliptical coordinates.
-
-=over
-
-=item * correction in arc-degrees
-
-=back
 
 =head1 AUTHOR
 

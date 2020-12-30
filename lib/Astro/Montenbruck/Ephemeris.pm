@@ -16,11 +16,11 @@ our %EXPORT_TAGS = (
     all  => [ qw/iterator find_positions/ ],
 );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} }, );
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 use Math::Trig qw/deg2rad/;
 use List::Util qw/any/;
-use Astro::Montenbruck::Ephemeris::Planet qw/:ids true2apparent light_travel/;
+use Astro::Montenbruck::Ephemeris::Planet qw/:ids/;
 use Astro::Montenbruck::NutEqu qw/mean2true/;
 use Astro::Montenbruck::MathUtils qw/diff_angle/;
 
@@ -50,62 +50,39 @@ sub _iterator {
     my $ids_ref = shift;
     my @items = @{$ids_ref};
     my %arg = @_;
-    my $sun_pos;
-    my $sun_lbr;
-    my $nut_func;
 
-    # Return position of the Sun, that is calculated only once.
-    my $get_sun_pos = sub {
-        $sun_pos = [ _construct('Planet', $SU)->()->position($t) ]
-            unless defined $sun_pos;
-        $sun_pos
+
+    my $sun = _construct('Planet', $SU)->();
+    my @sun_pos = $sun->sunpos($t);
+    my $sun_lbr = {
+        l => deg2rad($sun_pos[0]),
+        b => deg2rad($sun_pos[1]),
+        r => $sun_pos[2]
     };
 
-    # Return l, b, r of the Sun, l and b in radians.
-    my $get_sun_lbr = sub {
-        my $pos = $get_sun_pos->();
-        $sun_lbr = {
-            l => deg2rad($pos->[0]),
-            b => deg2rad($pos->[1]),
-            r => $pos->[2]
-        } unless defined $sun_lbr;
-        $sun_lbr;
-    };
-
-    # function for converting mean geocentric coordinates to true geocentric
-    my $get_nut_func = sub {
-        $nut_func = mean2true($t) unless defined $nut_func;
-        $nut_func
-    };
+    my $nut_func = mean2true($t);
 
     # Calculate required position. Sun's coordinates are calculated only once.
     my $get_position = sub {
         my $id = shift;
         given ($id) {
             when ($SU) {
-                my ($sl, $sb, $sr) = @{$get_sun_pos->()};
-                $sl -= light_travel($sr);
                 return [
-                    true2apparent(
-                        [$sl, $sb, $sr],
-                        $get_nut_func->()
-                    )
+                    $sun->apparent($t, \@sun_pos, $nut_func)
                 ]
             }
             when ($MO) {
+                my $moo = _construct('Planet', $id)->();
                 return [
-                    true2apparent(
-                        [_construct('Planet', $id)->()->position($t)],
-                        $get_nut_func->()
-                    )
-                ];
+                    $moo->apparent([$moo->moonpos($t)], $nut_func)
+                ]
             }
             default {
+                my $pla = _construct('Planet', $id)->();
+                my @lbr = $pla->heliocentric($t);
+                # planets
                 return [
-                    true2apparent(
-                        [_construct('Planet', $id)->()->position( $t,  $get_sun_lbr->() )],
-                        $get_nut_func->()
-                    )
+                    $pla->apparent($t, \@lbr, $sun_lbr, $nut_func)
                 ]
             }
         }

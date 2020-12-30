@@ -243,7 +243,7 @@ __END__
 
 =head1 NAME
 
-planpos — calculate planetary positions for given time and place.
+planpos - calculate planetary positions for given time and place.
 
 =head1 SYNOPSIS
 
@@ -288,21 +288,21 @@ The observer's location. Contains 2 elements, space separated, in any order:
 
 E.g.: C<--place=51N28 0W0> for I<Greenwich, UK>.
 
-=item B<--coordinates> — type and format of coordinates to display:
+=item B<--coordinates> - type and format of coordinates to display:
 
 =over
 
-=item * B<1> — Ecliptical, angular units (default)
+=item * B<1> - Ecliptical, angular units (default)
 
-=item * B<2> — Ecliptical, zodiac
+=item * B<2> - Ecliptical, zodiac
 
-=item * B<3> — Equatorial, time units
+=item * B<3> - Equatorial, time units
 
-=item * B<4> — Equatorial, angular units
+=item * B<4> - Equatorial, angular units
 
-=item * B<5> — Horizontal, time units
+=item * B<5> - Horizontal, time units
 
-=item * B<6> — Horizontal, angular units
+=item * B<6> - Horizontal, angular units
 
 =back
 

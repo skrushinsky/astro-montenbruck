@@ -12,7 +12,7 @@ use DateTime::Format::Strptime qw/strptime/;
 use Astro::Montenbruck::MathUtils qw/ddd dms zdms frac/;
 use Astro::Montenbruck::Time qw/jd2unix/;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 our @EXPORT_OK = qw/parse_datetime parse_geocoords dmsz_str dms_or_dec_str
   dmsdelta_str hms_str format_geo @ZODIAC $LOCALE @DEFAULT_PLACE/;
@@ -83,13 +83,13 @@ sub dmsz_str {
         sprintf( '%05.2f %s', ( $x % 30 ) + frac($x), $z );
     }
     else {
-        sprintf( '%02d°%02d′ %s', $d, $m, $z );
+        sprintf( '%02d:%02d %s', $d, $m, $z );
     }
 }
 
 sub dms_str {
     my $x = shift;
-    sprintf( '%03d°%02d′%02d″', dms($x) );
+    sprintf( '%03d:%02d:%02d:', dms($x) );
 }
 
 sub dms_or_dec_str {
@@ -104,7 +104,7 @@ sub dms_or_dec_str {
     }
     else {
         my $f = sprintf( '0%dd', $arg{places} );
-        my $fmt = "$s%$f°%02d′%02d″";
+        my $fmt = "$s%$f:%02d:%02d";
         sprintf( $fmt, dms( abs($x) ) );
     }
 }

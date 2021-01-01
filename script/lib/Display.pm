@@ -33,7 +33,7 @@ Readonly::Hash our %LIGHT_THEME => (
 sub print_data {
     my $title  = shift;
     my $data   = shift;
-    my %arg    = (title_width => 20, selected => 0, @_);
+    my %arg    = (title_width => 20, highlited => 0, @_);
     my $fmt    = '%-' . $arg{title_width} . 's';
     my $scheme = $arg{scheme};
     my $data_color = $arg{highlited} ? $scheme->{data_row_selected}

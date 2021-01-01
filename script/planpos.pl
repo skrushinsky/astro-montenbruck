@@ -23,8 +23,8 @@ use Astro::Montenbruck::NutEqu qw/obliquity/;
 use Astro::Montenbruck::Ephemeris qw/find_positions/;
 use Astro::Montenbruck::Ephemeris::Planet qw/@PLANETS/;
 use Helpers qw/
-    parse_datetime parse_geocoords format_geo hms_str dms_or_dec_str dmsz_str
-    $LOCALE @DEFAULT_PLACE/;
+    parse_datetime parse_geocoords format_geo hms_str dms_or_dec_str dmsz_str local_now
+    @DEFAULT_PLACE/;
 use Display qw/%LIGHT_THEME %DARK_THEME print_data/;
 
 sub ecliptic_to_horizontal {
@@ -149,7 +149,7 @@ sub print_header {
 my $man    = 0;
 my $help   = 0;
 my $use_dt = 1;
-my $time   = DateTime->now()->set_locale($LOCALE)->strftime('%F %T');
+my $time   = local_now()->strftime('%F %T');
 my @place;
 my $format = 'S';
 my $coords = 1;

@@ -35,13 +35,13 @@ sub solequ {
     my ($year, $k) = @_;
 
     # find approximate time in Julian Days
-    # k = 0 for March Equinox,
+    # k = 0 for March equinox,
     #     1 for the Julne solstice
     #     2 for the September equinox
     #     3 for the December solstice 
-    print("k = $k, year = $year\n");
+    # print("k = $k, year = $year\n");
     my $j = ($year + $k / 4) * 365.2422 + 1721141.3;
-    print("j = $j\n");
+    # print("j = $j\n");
 	my $k90 = $k * 90;
     my $sun = Astro::Montenbruck::Ephemeris::Planet::Sun->new();
     my $nut_func = mean2true(jd_cent($j)); 
@@ -54,7 +54,7 @@ sub solequ {
         my $nut_func = mean2true($t);
         ($x) =  $sun->apparent($t, \@lbr, $nut_func); # apparent geocentric ecliptical coordinates
         $j += 58 * sin(deg2rad($k90 - $x));
-        print("j = $j, x = $x, last_x = $last_x\n")
+        # print("j = $j, x = $x, last_x = $last_x\n")
     } until(angle_c($k90, $x) < $DELTA || $x == $last_x);
 
     my $dt = delta_t($j);

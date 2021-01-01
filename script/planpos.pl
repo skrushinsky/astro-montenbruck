@@ -7,7 +7,7 @@ use feature qw/state switch/;
 
 use utf8;
 use FindBin qw/$Bin/;
-use lib ("$Bin/lib", "$Bin/../lib");
+use lib ("$Bin/../lib");
 use Getopt::Long qw/GetOptions/;
 use Pod::Usage qw/pod2usage/;
 use DateTime;
@@ -22,10 +22,10 @@ use Astro::Montenbruck::CoCo qw/:all/;
 use Astro::Montenbruck::NutEqu qw/obliquity/;
 use Astro::Montenbruck::Ephemeris qw/find_positions/;
 use Astro::Montenbruck::Ephemeris::Planet qw/@PLANETS/;
-use Helpers qw/
+use Astro::Montenbruck::Utils::Helpers qw/
     parse_datetime parse_geocoords format_geo hms_str dms_or_dec_str dmsz_str local_now
     @DEFAULT_PLACE/;
-use Display qw/%LIGHT_THEME %DARK_THEME print_data/;
+use Astro::Montenbruck::Utils::Display qw/%LIGHT_THEME %DARK_THEME print_data/;
 
 sub ecliptic_to_horizontal {
     my ($lambda, $beta, $eps, $lst, $theta) = @_;

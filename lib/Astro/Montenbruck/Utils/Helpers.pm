@@ -1,4 +1,4 @@
-package Helpers;
+package Astro::Montenbruck::Utils::Helpers;
 use 5.22.0;
 use strict;
 use warnings;
@@ -12,7 +12,7 @@ use DateTime::Format::Strptime qw/strptime/;
 use Astro::Montenbruck::MathUtils qw/ddd dms zdms frac/;
 use Astro::Montenbruck::Time qw/jd2unix/;
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 our @EXPORT_OK = qw/parse_datetime parse_geocoords dmsz_str dms_or_dec_str
   dmsdelta_str hms_str format_geo @ZODIAC $LOCALE @DEFAULT_PLACE 

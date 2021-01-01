@@ -7,15 +7,15 @@ use feature qw/switch/;
 
 use utf8;
 use FindBin qw/$Bin/;
-use lib ("$Bin/lib", "$Bin/../lib");
+use lib ("$Bin/../lib");
 use Getopt::Long qw/GetOptions/;
 use Pod::Usage qw/pod2usage/;
 use DateTime;
 use Term::ANSIColor;
 
 use Readonly;
-use Helpers qw/parse_datetime local_now current_timezone/;
-use Display qw/%LIGHT_THEME %DARK_THEME print_data/;
+use Astro::Montenbruck::Utils::Helpers qw/parse_datetime local_now current_timezone/;
+use Astro::Montenbruck::Utils::Display qw/%LIGHT_THEME %DARK_THEME print_data/;
 use Astro::Montenbruck::Time qw/jd2unix/;
 use Astro::Montenbruck::SolEqu qw/:all/;
 

@@ -29,7 +29,7 @@ our %EXPORT_TAGS = (
 );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{all} } );
 
-our $VERSION   = 0.01;
+our $VERSION   = 0.02;
 
 sub solequ {
     my ($year, $k) = @_;
@@ -133,7 +133,7 @@ Find Julian Day of solstice or equinox for a given year.
 
     use Astro::Montenbruck::SolEqu qw/:all/;
 
-	my $jd = AstroScript::Ephemeris::Sun->solequ($year, $k);
+	my $jd = Astro::Montenbruck::Ephemeris::Sun->solequ($year, $k);
 
 The result is accurate within I<5 minutes> of Universal Time.
 
@@ -175,7 +175,7 @@ Sergey Krushinsky, C<< <krushi at cpan.org> >>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009-2020 by Sergey Krushinsky
+Copyright (C) 2009-2021 by Sergey Krushinsky
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

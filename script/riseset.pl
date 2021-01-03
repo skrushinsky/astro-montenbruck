@@ -3,7 +3,7 @@
 use 5.22.0;
 use strict;
 no warnings qw/experimental/;
-use feature qw/state switch/;
+use feature qw/switch/;
 
 use utf8;
 use FindBin qw/$Bin/;

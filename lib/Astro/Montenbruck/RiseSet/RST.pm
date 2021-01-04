@@ -12,7 +12,7 @@ use Math::Trig qw/:pi deg2rad rad2deg acos/;
 use List::Util qw/any/;
 
 use Astro::Montenbruck::Time::Sidereal qw/ramc/;
-use Astro::Montenbruck::MathUtils qw/diff_angle reduce_deg reduce_rad/;
+use Astro::Montenbruck::MathUtils qw/diff_angle reduce_deg reduce_rad to_range/;
 use Astro::Montenbruck::Time qw/cal2jd jd_cent $SEC_PER_DAY/;
 use Astro::Montenbruck::Time::DeltaT qw/delta_t/;
 use Astro::Montenbruck::CoCo qw/equ2hor/;
@@ -95,7 +95,7 @@ sub rst_function {
             return;
         }
 
-        my $h0 = acos($cos_h);
+        my $h0 = to_range(acos($cos_h), pi);
         my $m0 = ( reduce_rad( $alpha[1] + $lambda - $gstm ) ) / pi2;
         my $m  = do {
             given ($evt) {

@@ -1,4 +1,4 @@
-package Display;
+package Astro::Montenbruck::Utils::Display;
 use 5.22.0;
 use strict;
 use warnings;
@@ -6,7 +6,7 @@ use Exporter qw/import/;
 use Readonly;
 use Term::ANSIColor;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 our @EXPORT_OK = qw/%LIGHT_THEME %DARK_THEME print_data/;
 
@@ -33,7 +33,7 @@ Readonly::Hash our %LIGHT_THEME => (
 sub print_data {
     my $title  = shift;
     my $data   = shift;
-    my %arg    = (title_width => 20, selected => 0, @_);
+    my %arg    = (title_width => 20, highlited => 0, @_);
     my $fmt    = '%-' . $arg{title_width} . 's';
     my $scheme = $arg{scheme};
     my $data_color = $arg{highlited} ? $scheme->{data_row_selected}

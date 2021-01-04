@@ -9,25 +9,25 @@ use utf8;
 use FindBin qw/$Bin/;
 use lib ("$Bin/../lib");
 use Getopt::Long qw/GetOptions/;
-use POSIX qw /floor/;
 use Pod::Usage qw/pod2usage/;
 use DateTime;
 use Term::ANSIColor;
 
 use Readonly;
-use Astro::Montenbruck::Utils::Helpers qw/parse_datetime current_timezone local_now/;
+use Astro::Montenbruck::Utils::Helpers qw/parse_datetime local_now current_timezone/;
 use Astro::Montenbruck::Utils::Display qw/%LIGHT_THEME %DARK_THEME print_data/;
-use Astro::Montenbruck::Time qw/jd2cal jd2unix/;
-use Astro::Montenbruck::Lunation qw/:all/;
+use Astro::Montenbruck::Time qw/jd2unix/;
+use Astro::Montenbruck::SolEqu qw/:all/;
 
+Readonly::Array our @EVT_NAMES => (
+    'March equinox', 'June solstice', 'September equinox', 'December solstice');
 
-my $now = local_now();
+my $now = my $now = local_now();
 
 my $help   = 0;
 my $man    = 0;
-my $date   = $now->strftime('%F');
-my $tzone  = current_timezone();
-my @place;
+my $year   = $now->year;
+my $tzone  = current_timezone(); # $now->strftime('%Z');
 my $theme  = 'dark';
 
 # Parse options and print usage if there is a syntax error,
@@ -35,7 +35,7 @@ my $theme  = 'dark';
 GetOptions(
     'help|?'     => \$help,
     'man'        => \$man,
-    'date:s'     => \$date,
+    'year:s'     => \$year,
     'theme:s'    => \$theme,
     'timezone:s' => \$tzone,
 ) or pod2usage(2);
@@ -51,44 +51,22 @@ my $scheme = do {
     }
 };
 
-
-my $dt = parse_datetime($date);
-$dt->set_time_zone($tzone) if defined($tzone);
 say();
-print_data('Date', $dt->strftime('%F'), scheme => $scheme, title_width => 14);
-print_data('Time Zone', $dt->strftime('%Z'), scheme => $scheme, title_width => 14);
+print_data('Year', $year, scheme => $scheme, title_width => 14);
+print_data('Time Zone', $tzone, scheme => $scheme, title_width => 14);
 say();
-# find New Moon closest to the date
-my $j = search_event([$dt->year, $dt->month, $dt->day], $NEW_MOON);
-# if the event has not happened yet, find the previous one
-if ($j > $dt->jd) {
-    my ($y, $m, $d) = jd2cal($j - 28);
-    $j = search_event([$y, $m, floor($d)], $NEW_MOON);
+
+for my $evt (@SOLEQU_EVENTS) {
+    my $jd = solequ($year, $evt);
+    my $dt = DateTime->from_epoch(epoch => jd2unix($jd))->set_time_zone($tzone); 
+    print_data(
+        $EVT_NAMES[$evt], 
+        $dt->strftime('%F %T'), 
+        scheme => $scheme, 
+        title_width => 18,
+        highlited => 1
+    );
 }
-
-my @month = @MONTH;
-my @quarters = (
-     {type => pop @month, jd => $j, current => 0}
-);
-push @month, $NEW_MOON;
-
-for my $q (@month) {
-    my ($y, $m, $d) = jd2cal $j;
-    $j = search_event([$y, $m, floor($d)], $q);
-    my $prev = $quarters[$#quarters];
-    $prev->{current} = 1 if ($dt->jd >= $prev->{jd} && $dt->jd < $j);
-    push @quarters, {type => $q, jd => $j, current => 0 }
-}
-
-for my $q (@quarters) {
-    my $dt = DateTime->from_epoch(epoch => jd2unix($q->{jd}))->set_time_zone($tzone);
-    my $mark = $q->{current} ? '*' : ' ';
-    my $data = sprintf('%s %s', $dt->strftime('%F %T'), $mark);
-    print_data($q->{type}, $data, scheme => $scheme, title_width => 14, highlited => $q->{current});
-}
-
-
-
 
 print "\n";
 
@@ -101,11 +79,11 @@ __END__
 
 =head1 NAME
 
-phases — calculate date/time of principal lunar phases around a date.
+phases — calculate date/time of solstices and equinoxes for a given year.
 
 =head1 SYNOPSIS
 
-  phases [options]
+  solequ [options]
 
 =head1 OPTIONS
 
@@ -115,11 +93,11 @@ phases — calculate date/time of principal lunar phases around a date.
 
 Prints a brief help message and exits.
 
-=item B<--date>
+=item B<--year>
 
-Date, either a I<calendar entry> in format C<YYYY-MM-DD>, or a floating-point I<Julian Day>:
+Year, astronomical (zero-year allowed)
 
-  --date="2019-06-08"
+  --year=2021
 
 =item B<--timezone>
 
@@ -152,6 +130,6 @@ In such cases, use I<offset from Greenwich> format, as described above.
 
 =head1 DESCRIPTION
 
-B<phases>  computes lunar phases around a date.
+B<solequ> computes solstices and equinoxes for a given year.
 
 =cut

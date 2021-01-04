@@ -1,4 +1,4 @@
-package Helpers;
+package Astro::Montenbruck::Utils::Helpers;
 use 5.22.0;
 use strict;
 use warnings;
@@ -12,10 +12,11 @@ use DateTime::Format::Strptime qw/strptime/;
 use Astro::Montenbruck::MathUtils qw/ddd dms zdms frac/;
 use Astro::Montenbruck::Time qw/jd2unix/;
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 our @EXPORT_OK = qw/parse_datetime parse_geocoords dmsz_str dms_or_dec_str
-  dmsdelta_str hms_str format_geo @ZODIAC $LOCALE @DEFAULT_PLACE/;
+  dmsdelta_str hms_str format_geo @ZODIAC $LOCALE @DEFAULT_PLACE 
+  current_timezone local_now/;
 
 Readonly::Array our @DATETIME_PATTERNS => (
   '%F %R %Z', '%F %R %z', '%F %R',
@@ -138,6 +139,16 @@ sub format_geo {
 
     "$lats, $lons"
 }
+
+
+sub current_timezone {
+    DateTime::TimeZone->new( name => 'local' )->name()
+}
+
+sub local_now {
+     DateTime->now()->set_locale($LOCALE)->set_time_zone(current_timezone())
+}
+
 
 1;
 

@@ -17,3 +17,4 @@ Revision history for AstroScript
              Numerous bugfixes
 2021-01-01 - Demo script for computing solstices / Equinoxes
              Utility modules renamed to avoid CPAN authorization issues
+2021-01-05 - List::MoreUtils dependency added to build prerequisites

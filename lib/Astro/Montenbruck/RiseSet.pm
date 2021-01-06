@@ -17,12 +17,12 @@ use Astro::Montenbruck::CoCo qw/ecl2equ/;
 use Astro::Montenbruck::NutEqu qw/obliquity/;
 use Astro::Montenbruck::Ephemeris qw/iterator/;
 use Astro::Montenbruck::Ephemeris::Planet qw/:ids/;
-use Astro::Montenbruck::RiseSet::Constants qw/:altitudes :twilight :states/;
+use Astro::Montenbruck::RiseSet::Constants qw/:altitudes :twilight :events :states/;
 use Astro::Montenbruck::RiseSet::RST qw/rst_function/;
-use Astro::Montenbruck::RiseSet::Sunset qw/riseset/;
+use Astro::Montenbruck::RiseSet::Sunset qw/riseset_func/;
 
 our %EXPORT_TAGS = (
-    all => [ qw/rst_event twilight/ ],
+    all => [ qw/rst_event rs_event twilight/ ],
 );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our $VERSION   = 0.01;
@@ -47,23 +47,11 @@ sub twilight {
     my %arg = (type => $TWILIGHT_NAUTICAL, @_);
     my $type = delete $arg{type};
     die "Unknown twilight type: \"$type\"" unless exists $H0_TWL{$type};
-
-    riseset(
+    riseset_func(%arg)->(
         %arg,
         get_position => sub { _get_equatorial( $SU, $_[0] ) },
         sin_h0       => sin( deg2rad($H0_TWL{$type}) ),
     );
-}
-
-# Return the standard altitude of the Moon.
-#
-# Arguments:
-#   - $r : Distance between the centers of the Earth and Moon, in km.
-# Returns:
-#   - Standard altitude in radians.
-sub _moon_rs_alt {
-    my ($y, $m, $d) = @_;
-    $H0_MOO
 }
 
 sub rst_event {
@@ -74,7 +62,7 @@ sub rst_event {
         h       => do {
             given( $pla ) {
                 $H0_SUN when $SU;
-                _moon_rs_alt(@{$arg{date}}) when $MO;
+                $H0_MOO when $MO;
                 default { $H0_PLA }
             }
         },
@@ -84,6 +72,53 @@ sub rst_event {
         },
         %arg
     )
+}
+
+
+sub rs_event {
+    my %arg = @_;
+    my $pla  = delete $arg{planet};
+    my $h0 = do {
+        given( $pla ) {
+            $H0_SUN when $SU;
+            $H0_MOO when $MO;
+            default { $H0_PLA }
+        }
+    };
+    my $func = riseset_func(%arg);  
+    sub {
+        my %arg = (on_event => sub{}, on_noevent => sub{}, @_);
+
+        if (wantarray) {
+            # if caller asks for a result, collect events to %res hash
+            my %res;            
+            $func->(
+                get_position => sub { _get_equatorial( $pla, $_[0] ) },
+                sin_h0       => sin( deg2rad($h0) ),
+                on_event     => sub {
+                    my ($evt, $jd) = @_;
+                    $arg{on_event}->(@_);
+                    $res{$evt} = {ok => 1, jd => $jd};
+                },
+                on_noevent   => sub {
+                    my ($state) = shift;
+                    $arg{on_noevent}->(@_);
+                    my $evt = $state eq $STATE_NEVER_RISES ? $EVT_RISE : $EVT_SET;
+                    $res{$evt} = {ok => 0, state => $state};
+                }
+            );
+            return %res;
+        }
+        else {
+            # if caller doesn't ask for a result, just call the function with the callbacks
+            $func->(
+                get_position => sub { _get_equatorial( $pla, $_[0] ) },
+                sin_h0       => sin( deg2rad($h0) ),
+                on_event     => $arg{on_event},
+                on_noevent   => $arg{on_noevent},
+            );            
+        }
+    }
 }
 
 1;

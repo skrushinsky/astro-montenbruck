@@ -211,7 +211,7 @@ subtest 'Coordinates conversions' => sub {
 
 subtest 'Quadratic interpolation' => sub {
     plan tests => 5;
-    my ($xe, $ye, $zero1, $zero2, $nz) = quad(0.579584122357906, 0.539651962323748, 0.459447362223028);
+    my ($nz, $xe, $ye, $zero1, $zero2) = quad(0.579584122357906, 0.539651962323748, 0.459447362223028);
     delta_ok($xe, -1.49155054841862, 'xe' );
     delta_ok($ye, 0.584449474939852, 'ye' );
     delta_ok($zero1, 3.89591507857614, 'zero1' );

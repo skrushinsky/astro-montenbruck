@@ -53,7 +53,7 @@ do {
     say strftime('%Y-%m-%d', localtime(jd2unix($next_jd)));
     
     for my $pla (@PLANETS) {
-        my $func = rst_event(
+        my $func = rs_event(
             planet => $pla,
             date   => \@date,
             phi    => $lat,

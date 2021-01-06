@@ -130,31 +130,26 @@ sub polar ( $x, $y, $z ) {
 }
 
 sub quad {
-    my ($y_minus, $y_0, $y_plus) = @_;
+    my ( $y_minus, $y_0, $y_plus ) = @_;
+    my $nz = 0;
+    my $a  = 0.5 * ( $y_minus + $y_plus ) - $y_0;
+    my $b  = 0.5 * ( $y_plus - $y_minus );
+    my $c  = $y_0;
 
-    my $n_root = 0;
-    # Coefficients of interpolating parabola y=a*x^2+b*x+c
-    my $a = 0.5 * ($y_plus + $y_minus) - $y_0;
-    my $b = 0.5 * ($y_plus - $y_minus);
-    my $c = $y_0;
+    my $xe  = -$b / ( 2 * $a );
+    my $ye  = ( $a * $xe + $b ) * $xe + $c;
+    my $dis = $b * $b - 4 * $a * $c;          # discriminant of y = axx+bx+c
+    my @zeroes;
+    if ( $dis >= 0 ) {
 
-    # Find extreme value
-    my $xe = -$b / (2.0 * $a); 
-    my $ye = ($a * $xe + $b) * $xe + $c;
-    my $dis = $b * $b - 4.0 * $a * $c; # Discriminant of y = a * x^2 + b * x + c
-
-    my ($root1, $root2);
-    if ($dis >= 0) { 
-        # Parabola has roots 
+        # parabola intersects x-axis
         my $dx = 0.5 * sqrt($dis) / abs($a);
-        $root1 = $xe - $dx; 
-        $root2 = $xe + $dx;
-
-        ++$n_root if abs($root1) <= 1.0;  
-        ++$n_root if abs($root2) <= 1.0;
-        $root1 = $root2 if $root1 < -1.0;
+        @zeroes[ 0, 1 ] = ( $xe - $dx, $xe + $dx );
+        $nz++ if abs( $zeroes[0] ) <= 1;
+        $nz++ if abs( $zeroes[1] ) <= 1;
+        $zeroes[0] = $zeroes[1] if $zeroes[0] < -1;
     }
-    $xe, $ye, $root1, $root2, $n_root;
+    $nz, $xe, $ye, @zeroes;
 }
 
 

@@ -18,7 +18,7 @@ use Readonly;
 use Astro::Montenbruck::MathUtils qw/frac hms/;
 use Astro::Montenbruck::Ephemeris::Planet qw/@PLANETS/;
 use Astro::Montenbruck::Time qw/jd2unix cal2jd/;
-use Astro::Montenbruck::RiseSet::Constants qw/:events :states :twilight/;
+use Astro::Montenbruck::RiseSet::Constants qw/:events :twilight/;
 use Astro::Montenbruck::RiseSet qw/:all/;
 use Astro::Montenbruck::Utils::Helpers qw/parse_datetime parse_geocoords format_geo hms_str local_now current_timezone @DEFAULT_PLACE/;
 use Astro::Montenbruck::Utils::Display qw/%LIGHT_THEME %DARK_THEME print_data/;
@@ -30,29 +30,35 @@ Readonly::Hash our %TWILIGHT_TITLE => (
     $EVT_SET  => 'Dusk',
 );
 
-sub print_row {
-  my ($obj, $res, $tzone, $scheme) = @_;
-  print colored( sprintf('%-8s', $obj), $scheme->{table_row_title} );
-  for my $key ($EVT_RISE, $EVT_SET) {
-    my $evt = $res->{$key};
-    if ($evt->{ok}) {
-      my $dt = DateTime->from_epoch(epoch => jd2unix($evt->{jd}))->set_time_zone($tzone);
-      print colored(
-          $dt->strftime('%T'),
-          $scheme->{table_row_data}
-      );    
-    } else {
-      print colored(
-          sprintf('%-8s', ' — '),
-          $scheme->{table_row_error}
-      );      
+sub process_planet {
+    my ($id, $func, $scheme, $tzone) = @_;
+
+    print colored( sprintf('%-8s', $id), $scheme->{table_row_title} );
+
+    for my $evt (@RS_EVENTS) {
+        $func->(
+            $evt,
+            on_event   => sub {
+                my $jd = shift; # Standard Julian date
+                my $dt = DateTime->from_epoch(epoch => jd2unix($jd))
+                                 ->set_time_zone($tzone);
+                print colored(
+                    $dt->strftime('%T'),
+                    $scheme->{table_row_data}
+                );
+                print "   ";
+            },
+            on_noevent => sub {
+                print colored(
+                    sprintf('%-8s', ' — '),
+                    $scheme->{table_row_error}
+                );
+                print " ";
+            }
+        );
     }
-    print "   ";    
-  }
-  print("\n");
+    print "\n"
 }
-
-
 
 # date   => [ $utc->year, $utc->month, $utc->day ],
 # phi    => $lat,
@@ -161,18 +167,17 @@ print_data(
 );
 print "\n";
 print colored(
-    "        rise       set     \n",
+    "        rise       transit    set     \n",
     $scheme->{table_row_title}
 );
-for my $obj (@PLANETS) {
-    my $func = rs_event(
-        planet => $obj,
+for (@PLANETS) {
+    my $func = rst_event(
+        planet => $_,
         date   => [ $utc->year, $utc->month, $utc->day ],
         phi    => $lat,
         lambda => $lon
     );
-    my %res = $func->();
-    print_row($obj, \%res, $tzone, $scheme);
+    process_planet($_, $func, $scheme, $local->time_zone)
 }
 
 say colored("\nTwilight ($twilight)\n", $scheme->{data_row_title});

@@ -17,7 +17,7 @@ our %EXPORT_TAGS = (
     all => [
         qw/frac frac360 dms hms zdms ddd polynome sine
           reduce_deg reduce_rad to_range opposite_deg opposite_rad
-          angle_s angle_c angle_c_rad diff_angle polar cart
+          angle_s angle_c angle_c_rad diff_angle polar cart quad
           ARCS/
     ],
 );
@@ -128,6 +128,35 @@ sub polar ( $x, $y, $z ) {
     my $theta = atan2( $z, $rho );
     $r, $theta, $phi;
 }
+
+sub quad {
+    my ($y_minus, $y_0, $y_plus) = @_;
+
+    my $n_root = 0;
+    # Coefficients of interpolating parabola y=a*x^2+b*x+c
+    my $a = 0.5 * ($y_plus + $y_minus) - $y_0;
+    my $b = 0.5 * ($y_plus - $y_minus);
+    my $c = $y_0;
+
+    # Find extreme value
+    my $xe = -$b / (2.0 * $a); 
+    my $ye = ($a * $xe + $b) * $xe + $c;
+    my $dis = $b * $b - 4.0 * $a * $c; # Discriminant of y = a * x^2 + b * x + c
+
+    my ($root1, $root2);
+    if ($dis >= 0) { 
+        # Parabola has roots 
+        my $dx = 0.5 * sqrt($dis) / abs($a);
+        $root1 = $xe - $dx; 
+        $root2 = $xe + $dx;
+
+        ++$n_root if abs($root1) <= 1.0;  
+        ++$n_root if abs($root2) <= 1.0;
+        $root1 = $root2 if $root1 < -1.0;
+    }
+    $xe, $ye, $root1, $root2, $n_root;
+}
+
 
 
 1;    # End of Astro::Montenbruck::Core::MathUtils
@@ -476,8 +505,6 @@ Conversion of cartesian coordinates (x,y,z) into polar (r,theta,phi).
 
 =head3 Returns
 
-Spherical coordinates:
-
 =over
 
 =item * B<$r>, distance from the origin;
@@ -485,6 +512,43 @@ Spherical coordinates:
 =item * B<$theta> (in radians) corresponding to [-90 deg, +90 deg];
 
 =item * B<$phi> (in radians) corresponding to [-360 deg, +360 deg])
+
+=back
+
+=head2 quad($y_minus, $y_0, $y_plus)
+
+Quadratic interpolation
+
+Finds a parabola through 3 points C<(-1 , y_minus), (0, Y_0), (1, y_plus)>,
+that do not lie on a straight line.   
+
+=head3 Arguments
+
+Three y-values:
+
+=over
+
+=item * B<$y_minus> value of function at x = -1
+
+=item * B<$y_0> value of function at x = 0
+
+=item * B<$y_plus> value of function at x = 1
+
+=back
+
+=head3 Returns
+
+=over
+
+=item * B<$xe>, abscissa of extremum (may be outside C<[-1, 1]>)
+
+=item * B<$ye>, Value of function at xe
+
+=item * B<$root1>, first root found
+
+=item * B<$root2>, second root found
+
+=item * B<$n_root>, number of roots within the interval C<[-1, +1]>
 
 =back
 

@@ -16,7 +16,7 @@ use Astro::Montenbruck::Time::Sidereal qw/ramc/;
 use Astro::Montenbruck::RiseSet::Constants qw/:events :states/;
 
 our @EXPORT_OK = qw/riseset_func/;
-our $VERSION   = 0.01;
+our $VERSION   = 0.02;
 
 sub _cs_phi {
     my $phi  = shift;

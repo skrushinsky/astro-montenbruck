@@ -13,27 +13,21 @@ use Pod::Usage qw/pod2usage/;
 use DateTime;
 use Term::ANSIColor;
 
-use Readonly;
-
 use Astro::Montenbruck::MathUtils qw/frac hms/;
 use Astro::Montenbruck::Ephemeris::Planet qw/@PLANETS/;
 use Astro::Montenbruck::Time qw/jd2unix cal2jd/;
-use Astro::Montenbruck::RiseSet::Constants qw/:events :states :twilight/;
-use Astro::Montenbruck::RiseSet qw/:all/;
+use Astro::Montenbruck::RiseSet::Constants qw/:altitudes :twilight :events :states/;
+use Astro::Montenbruck::RiseSet qw/rst twilight/;
 use Astro::Montenbruck::Utils::Helpers qw/parse_datetime parse_geocoords format_geo hms_str local_now current_timezone @DEFAULT_PLACE/;
 use Astro::Montenbruck::Utils::Display qw/%LIGHT_THEME %DARK_THEME print_data/;
 
 binmode(STDOUT, ":encoding(UTF-8)");
 
-Readonly::Hash our %TWILIGHT_TITLE => (
-    $EVT_RISE => 'Dawn',
-    $EVT_SET  => 'Dusk',
-);
-
-sub print_row {
+sub print_rst_row {
   my ($obj, $res, $tzone, $scheme) = @_;
   print colored( sprintf('%-8s', $obj), $scheme->{table_row_title} );
-  for my $key ($EVT_RISE, $EVT_SET) {
+  
+  for my $key (@RS_EVENTS) {
     my $evt = $res->{$key};
     if ($evt->{ok}) {
       my $dt = DateTime->from_epoch(epoch => jd2unix($evt->{jd}))->set_time_zone($tzone);
@@ -53,47 +47,26 @@ sub print_row {
 }
 
 
+sub print_twilight_row {
+    my ($evt, $res, $tzone, $scheme) = @_;
 
-# date   => [ $utc->year, $utc->month, $utc->day ],
-# phi    => $lat,
-# lambda => $lon,
-# type   => $twilight,
-# scheme => $scheme,
-# timezone => $local->time_zone
-sub process_twilight {
-    my %arg = @_;
-    my $date = $arg{date};
+    my $print_data = sub {
+        my $data = shift;
+        print_data(
+            $TWILIGHT_TITLE{$evt},
+            $data,
+            scheme      => $scheme,
+            title_width => 7
+        );
+    };
 
-    my %res;
-    twilight(
-        %arg,
-        on_event => sub {
-            my ( $evt, $ut ) = @_;
-            my $jd = cal2jd($date->[0], $date->[1], int($date->[2]) + $ut / 24);
-            my $dt = DateTime->from_epoch(epoch => jd2unix($jd))
-                             ->set_time_zone($arg{timezone});
-            $res{$evt} = $dt;
-        },
-        on_noevent => sub{}
-    );
-
-    for my $evt ($EVT_RISE, $EVT_SET) {
-        if (exists $res{$evt}) {
-            print_data(
-                $TWILIGHT_TITLE{$evt},
-                $res{$evt}->strftime('%T'),
-                scheme      => $arg{scheme},
-                title_width => 7
-            );
-        }
-        else {
-            print_data(
-                $TWILIGHT_TITLE{$evt},
-                ' — ',
-                scheme      => $arg{scheme},
-                title_width => 7
-            );
-        }
+    if (exists $res->{$evt}) {
+        my $dt = DateTime->from_epoch(epoch => jd2unix($res->{$evt}))
+                         ->set_time_zone($tzone);      
+        $print_data->($dt->strftime('%T'));  
+    }
+    else {
+        $print_data->(' — ');
     }
 }
 
@@ -160,30 +133,29 @@ print_data(
     title_width => 7
 );
 print "\n";
-print colored(
-    "        rise       set     \n",
+say colored(
+    "        rise       transit    set     ",
     $scheme->{table_row_title}
 );
-for my $obj (@PLANETS) {
-    my $func = rs_event(
-        planet => $obj,
-        date   => [ $utc->year, $utc->month, $utc->day ],
-        phi    => $lat,
-        lambda => $lon
-    );
-    my %res = $func->();
-    print_row($obj, \%res, $tzone, $scheme);
-}
+
+# build top-level function for any event and any celestial object 
+# for given time and place
+my $rst_func = rst(
+    date     => [ $utc->year, $utc->month, $utc->day ],
+    phi      => $lat,
+    lambda   => $lon
+);
+
+print_rst_row($_, { $rst_func->($_) }, $tzone, $scheme) for (@PLANETS);
 
 say colored("\nTwilight ($twilight)\n", $scheme->{data_row_title});
-process_twilight(
+my %twl = twilight(
     date   => [ $utc->year, $utc->month, $utc->day ],
     phi    => $lat,
     lambda => $lon,
     type   => $twilight,
-    scheme => $scheme,
-    timezone => $local->time_zone
 );
+print_twilight_row($_, \%twl, $tzone, $scheme) for ($EVT_RISE, $EVT_SET);
 
 print "\n";
 

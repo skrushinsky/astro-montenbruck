@@ -19,7 +19,8 @@ binmode(STDOUT, ":encoding(UTF-8)");
 
 my $man    = 0;
 my $help   = 0;
-my $year   =  (localtime())[5] + 1900;
+my $start  = strftime('%Y-%m-%d', localtime());
+my $days   = 30;
 my @place;
 
 # Parse options and print usage if there is a syntax error,
@@ -27,7 +28,8 @@ my @place;
 GetOptions(
     'help|?'     => \$help,
     'man'        => \$man,
-    'year:s'     => \$year, 
+    'start:s'    => \$start,
+    'days:s'     => \$days,
     'place:s{2}' => \@place,
 ) or pod2usage(2);
 
@@ -45,12 +47,12 @@ if  (grep(/^[\+\-]?(\d+(\.?\d+)?|(\.\d+))$/, @place) == 2) {
 }
 say format_geo($lat, $lon);
 
-my $next_jd = cal2jd($year, 1, 1);
-my @date;
+my $jd_start = cal2jd($start =~ /(\d+)-(\d+)-(\d+)/);
+my $jd_end = $jd_start + $days;
 
-do {
-    @date = jd2cal($next_jd);
-    say strftime('%Y-%m-%d', localtime(jd2unix($next_jd)));
+for (my $jd = $jd_start; $jd <= $jd_end; $jd++) { 
+    my @date = jd2cal($jd);
+    say strftime('%Y-%m-%d', localtime(jd2unix($jd)));
     
     my $rst_func = rst(
         date     => \@date,
@@ -76,10 +78,8 @@ do {
             $pla, 
             map {$report{$_}} @RS_EVENTS)
     } 
-    $next_jd++;  
     say('');     
-} while ($date[0] == $year)
-
+}
 
 
 __END__
@@ -90,12 +90,12 @@ __END__
 
 =head1 NAME
 
-riseset — calculate rise, set and transit times of Sun, Moon and the planets.
+rst_almanac — calculate rise, set and transit times of Sun, Moon and the planets.
 
 
 =head1 SYNOPSIS
 
-  riseset [options]
+  rst_almanac [options]
 
 =head1 OPTIONS
 
@@ -109,9 +109,13 @@ Prints a brief help message and exits.
 
 Prints the manual page and exits.
 
-=item B<--year>
+=item B<--start>
 
-Year, astronomical. Current year in default local time zone If omitted.
+Start date, in B<YYYY-DD-MM> format, current date by default.
+
+=item B<--days>
+
+Number of days to process, B<30> by default
 
 =item B<--place>
 
@@ -143,12 +147,13 @@ C<--place=40.73 73.935> for I<New-York, NY, USA>.
 
 =head1 DESCRIPTION
 
-Calculate rise, set and transit times of Sun, Moon and the planets for a given year.
+Calculate rise, set and transit times of Sun, Moon and the planets for given range of days
 
 
 =head2 EXAMPLES
 
-    perl ./script/riseset_year.pl --place=56N26 37E09
-    perl ./script/riseset_year.pl --place=56N26 37E09 --year=2000
+    perl ./script/rst_almanac.pl --place=56N26 37E09 --days=7
+    perl ./script/rst_almanac.pl --place=56N26 37E09 --start=2021-01-01 --days=365
+    
 
 =cut

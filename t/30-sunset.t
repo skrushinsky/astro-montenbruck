@@ -152,7 +152,8 @@ subtest 'Sun & Moon, normal conditions' => sub {
                 get_position => sub { Astro::Montenbruck::RiseSet::_get_equatorial( $pla, $_[0] ) },
                 sin_h0       => sin( deg2rad($h0{$pla}) ),
                 on_event => sub {
-                    my ($evt, $ut) = @_;
+                    my ($evt, $jd) = @_;
+                    my $ut = frac($jd - 0.5) * 24;
                     my @hm  = @{ $case->{$pla}->{$evt} };
                     delta_ok( $ut, ddd(@hm), sprintf( '%s %s: %02d:%02d', $pla, $evt, @hm ) );
                 },

@@ -22,7 +22,7 @@ lib/Astro/Montenbruck/MathUtils.pm
 lib/Astro/Montenbruck/NutEqu.pm
 lib/Astro/Montenbruck/RiseSet.pm
 lib/Astro/Montenbruck/RiseSet/Constants.pm
-lib/Astro/Montenbruck/RiseSet/RST.pm
+lib/Astro/Montenbruck/RiseSet/Plarise.pm
 lib/Astro/Montenbruck/RiseSet/Sunset.pm
 lib/Astro/Montenbruck/SolEqu.pm
 lib/Astro/Montenbruck/Time.pm
@@ -32,12 +32,15 @@ lib/Astro/Montenbruck/Utils/Display.pm
 lib/Astro/Montenbruck/Utils/Helpers.pm
 LICENSE
 MANIFEST			This list of files
+META.json
+META.yml
 README
 README.md
 script/createdocs.pl
 script/phases.pl
 script/planpos.pl
 script/riseset.pl
+script/rst_almanac.pl
 script/simple_ephem.pl
 script/solequ.pl
 script/test_all.pl
@@ -60,5 +63,3 @@ t/50-lunation.t
 t/60-solequ.t
 t/pod-coverage.t
 t/pod.t
-META.yml
-META.json

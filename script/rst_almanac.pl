@@ -123,9 +123,13 @@ The observer's location. Contains 2 elements, space separated.
 
 =over
 
-=item * latitude in C<DD(N|S)MM> format, B<N> for North, B<S> for South.
+=item * 
 
-=item * longitude in C<DDD(W|E)MM> format, B<W> for West, B<E> for East.
+latitude in C<DD(N|S)MM> format, B<N> for North, B<S> for South.
+
+=item * 
+
+longitude in C<DDD(W|E)MM> format, B<W> for West, B<E> for East.
 
 =back
 
@@ -135,9 +139,13 @@ B<Decimal numbers> are also supported. In that case
 
 =over
 
-=item * The latitude always goes first
+=item * 
 
-=item * Negative numbers represent I<South> latitude and I<East> longitudes. 
+The latitude always goes first
+
+=item * 
+
+Negative numbers represent I<South> latitude and I<East> longitudes. 
 
 =back
 

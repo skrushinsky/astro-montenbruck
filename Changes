@@ -26,3 +26,6 @@ Revision history for AstroScript
              Algorithms from J.Meeus book substituted with the alternatives,
              found in Montenbruck & Phleger's "Astronomy on the PC".
              Thanks to Tom Browder for testing and collaborating!   
+
+2021-01-10 - Support of colorless output. Color schemes replaced with
+             themes, responsible for output. 

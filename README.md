@@ -71,7 +71,7 @@ Documentation files will be installed to **docs/** directory.
 * **riseset.pl** — rises and sets of celestial objects 
 * **phases.pl** — lunar phases
 * **rst_almanac.pl** — rises/sets/transits events for a range of dates 
-* **slequ.pl** — solstices and equinoxes
+* **solequ.pl** — solstices and equinoxes
 
 ### Example
 

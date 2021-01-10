@@ -29,7 +29,7 @@ GetOptions(
     'help|?'     => \$help,
     'man'        => \$man,
     'start:s'    => \$start,
-    'days:s'     => \$days,
+    'days:i'     => \$days,
     'place:s{2}' => \@place,
 ) or pod2usage(2);
 
@@ -50,7 +50,7 @@ say format_geo($lat, $lon);
 my $jd_start = cal2jd($start =~ /(\d+)-(\d+)-(\d+)/);
 my $jd_end = $jd_start + $days;
 
-for (my $jd = $jd_start; $jd <= $jd_end; $jd++) { 
+for (my $jd = $jd_start; $jd < $jd_end; $jd++) { 
     my @date = jd2cal($jd);
     say strftime('%Y-%m-%d', localtime(jd2unix($jd)));
     

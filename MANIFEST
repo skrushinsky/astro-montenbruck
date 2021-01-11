@@ -35,6 +35,8 @@ lib/Astro/Montenbruck/Utils/Theme/Dark.pm
 lib/Astro/Montenbruck/Utils/Theme/Light.pm
 LICENSE
 MANIFEST			This list of files
+META.json
+META.yml
 README
 README.md
 script/createdocs.pl
@@ -64,5 +66,3 @@ t/50-lunation.t
 t/60-solequ.t
 t/pod-coverage.t
 t/pod.t
-META.yml
-META.json

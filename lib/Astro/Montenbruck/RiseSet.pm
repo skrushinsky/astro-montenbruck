@@ -220,7 +220,7 @@ Astro::Montenbruck::RiseSet - rise, set, transit.
     );
 
     # alternatively, call the function in list context:
-    my %res = $func->($MO); # result structure is described bellow
+    my %res = $func->($MO); # result structure is described below
 
     # calculate civil twilight    
     twilight(

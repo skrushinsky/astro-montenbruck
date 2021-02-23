@@ -29,3 +29,5 @@ Revision history for AstroScript
 
 2021-01-10 - Support of colorless output. Color schemes replaced with
              themes, responsible for output. 
+2021-02-23 - Time zone parameter in rst_almanac.pl script, user locale auto-detection
+             fixes (failed on some systems), documntation fixes

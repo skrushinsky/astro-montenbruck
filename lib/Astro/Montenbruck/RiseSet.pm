@@ -197,7 +197,7 @@ Astro::Montenbruck::RiseSet - rise, set, transit.
     use Astro::Montenbruck::Ephemeris::Planet qw/:ids/;
     use Astro::Montenbruck::MathUtils qw/frac/;
     use Astro::Montenbruck::RiseSet::Constants qw/:all/;
-    use Astro::Montenbruck::RiseSet' qw/:all/;
+    use Astro::Montenbruck::RiseSet qw/:all/;
 
     # create function for calculating rise/set/transit events for Munich, Germany, on March 23, 1989.
     my $func = rst(
@@ -220,7 +220,7 @@ Astro::Montenbruck::RiseSet - rise, set, transit.
     );
 
     # alternatively, call the function in list context:
-    my %res = $func->($MO); # result structure is described bellow
+    my %res = $func->($MO); # result structure is described below
 
     # calculate civil twilight    
     twilight(

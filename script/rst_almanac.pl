@@ -18,7 +18,7 @@ use Astro::Montenbruck::RiseSet::Constants qw/:events :states/;
 use Astro::Montenbruck::RiseSet qw/rst/;
 use Astro::Montenbruck::Utils::Helpers qw/parse_geocoords format_geo current_timezone @DEFAULT_PLACE/;
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 binmode(STDOUT, ":encoding(UTF-8)");
 
 

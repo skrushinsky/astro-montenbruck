@@ -207,7 +207,7 @@ The arguments are:
 
 =item * event type, one of C<$EVT_RISE> or C<$EVT_SET>
 
-=item * Univerrsal time of the event
+=item * Universal time of the event
 
 =back
 

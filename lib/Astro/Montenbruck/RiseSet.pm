@@ -262,6 +262,9 @@ L<Astro::Montenbruck::RiseSet::Sunset::riseset_func>, which calculates rise and 
 =back
 
 Both of them are described in I<"Astronomy On The Personal Computer"> by O.Montenbruck and T.Phleger.
+However, they are built on different algorithms: B<riseset_func> utilizes quadratic interpolation 
+while B<rst> is iterative. Along with rise and set, B<rst> gives transit times. At the other hand, 
+B<riseset_func> is a base for calculating twilight.
 
 To take into account I<parallax>, I<refraction> and I<apparent radius> of the
 bodies, we use average corrections to geometric altitudes:

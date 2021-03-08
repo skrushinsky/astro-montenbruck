@@ -58,7 +58,7 @@ sub parse_datetime {
     die "Could not parse date & time '$s': $@" unless $dt;
     $dt->set_locale($LOCALE);
     if ($dt->time_zone->name eq 'floating') {
-        eval { $dt->set_time_zone('local') };
+        # eval { $dt->set_time_zone('local') };
         $dt->set_time_zone('UTC') if $@;
     }
     $dt

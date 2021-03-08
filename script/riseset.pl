@@ -59,8 +59,7 @@ $DB::single = 1;
             title_width => 7 );
     }
     else {
-        $theme->print_data( $TWILIGHT_TITLE{$evt}, $dt->strftime(' — '),
-            title_width => 7 );      
+        $theme->print_data( $TWILIGHT_TITLE{$evt}, ' — ', title_width => 7 );      
     }
 }
 

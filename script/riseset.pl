@@ -58,7 +58,8 @@ sub print_twilight_row {
             title_width => 7 );
     }
     else {
-        $theme->print_data->(' — ');
+        $theme->print_data( $TWILIGHT_TITLE{$evt}, $dt->strftime(' — '),
+            title_width => 7 );      
     }
 }
 

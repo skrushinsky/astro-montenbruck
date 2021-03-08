@@ -61,7 +61,7 @@ sub twilight {
                 $on_event->(@_);
             },
             on_noevent => sub {
-                $on_event->(@_);
+                $on_noevent->(@_);
             },
             %arg,
             get_position => sub { _get_equatorial( $SU, $_[0] ) },

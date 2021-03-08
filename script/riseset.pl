@@ -50,6 +50,7 @@ sub print_rst_row {
 sub print_twilight_row {
     my ( $evt, $res, $tzone, $theme ) = @_;
     my $sch = $theme->scheme;
+$DB::single = 1;
 
     if ( exists $res->{$evt} ) {
         my $dt = DateTime->from_epoch( epoch => jd2unix( $res->{$evt} ) )

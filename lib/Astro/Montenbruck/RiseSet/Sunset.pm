@@ -114,7 +114,7 @@ sub riseset_func {
             # prepare for next interval
             $y_minus = $y_plus;
             $hour += 2;
-        } until ( ( $hour == 25 ) || ( $rise_found && $set_found ) );
+        } until ( ( $hour >= 36 ) || ( $rise_found && $set_found ) );
 
         $arg{on_noevent}->( $above ? $STATE_CIRCUMPOLAR : $STATE_NEVER_RISES )
           unless ( $rise_found || $set_found );

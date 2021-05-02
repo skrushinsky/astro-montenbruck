@@ -10,7 +10,7 @@
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-      "version" : 2
+      "version" : "2"
    },
    "name" : "Astro-Montenbruck",
    "prereqs" : {
@@ -174,5 +174,5 @@
    },
    "release_status" : "stable",
    "version" : "1.2",
-   "x_serialization_backend" : "JSON::PP version 4.05"
+   "x_serialization_backend" : "JSON::PP version 2.27400_02"
 }

@@ -313,6 +313,23 @@ objects can be observed by the naked eye during this time.
 
 =back
 
+=head1 CAVEATS
+
+Sometimes rise and set happen on different calendar dates. For example, here is the output of C<riseset.pl>
+script:
+
+  $ perl .\script\riseset.pl --date=1989-03-28 --place=48.1 -11.6 --timezone=UTC
+
+  Date      :  1989-03-28 UTC
+  Place     :  48N06, 011E35
+  Time Zone :  UTC
+
+          rise       transit    set     
+  Moon    23:34:17   03:23:59   07:10:54
+
+This directly depends on time zone. Since event time is always given as Julian date,
+it is not hard to determine correct order of events. 
+
 =head1 EXPORT
 
 =head2 FUNCTIONS

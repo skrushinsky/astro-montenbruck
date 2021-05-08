@@ -34,3 +34,4 @@ Revision history for AstroScript
 2021-03-08 - Bug fix in Rise/Set routines. On rare occasions hourly iteration could
              cross midnight and set time was missed. Documentation texts corrected, 
              thanks to Tom Browdy.  
+2021-05-08 - Sidereal time: result reduced to proper range

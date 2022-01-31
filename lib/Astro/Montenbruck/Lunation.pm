@@ -78,7 +78,7 @@ Readonly::Array my @A_CORR => (
     0.000035, 0.000023
 );
 
-Readonly::Array my @MANOM_SUN => ( 2.5534, 29.1053567, -1.4e-06, -1.1e-07 )
+Readonly::Array my @MANOM_SUN => ( 2.5534, 29.1053567, -1.4e-06, -1.1e-07, 0 )
   ;    # Sun's mean anomaly
 Readonly::Array my @MANOM_MOO =>
   ( 201.5643, 385.81693528, 0.0107582, 1.238e-05, -5.8e-08 )
@@ -86,7 +86,8 @@ Readonly::Array my @MANOM_MOO =>
 Readonly::Array my @ARGLA_MOO =>
   ( 160.7108, 390.67050284, -0.0016118, -2.27e-06, -1.1e-08 )
   ;    # Moon's argument of latitude
-Readonly::Array my @LONND_MOO => ( 124.7746, -1.56375588, 0.0020672, 2.15e-06 )
+Readonly::Array my @LONND_MOO =>
+  ( 124.7746, -1.56375588, 0.0020672, 2.15e-06, 0 )
   ;    # Longitude of the ascending node)
 
 Readonly::Hash our %QUARTER => (
@@ -116,36 +117,32 @@ sub _mean_phase {
     sprintf( '%.0f', ( $y - 2000 ) * 12.3685 ) + $fraction;
 }
 
-sub _mean_orbit {
-    my ( $k, $t ) = @_;
-
-    polynome( $t, 1, -2.516e-3, -7.4e-06 ), map {
-        my @terms = @$_;
-        reduce_deg(
-            polynome( $t, $terms[0] + $terms[1] * $k, @terms[ 2 .. $#terms ] ) )
-    } ( \@MANOM_SUN, \@MANOM_MOO, \@ARGLA_MOO, \@LONND_MOO );
-}
-
-sub _mean_jde {
-    my ( $k, $t ) = @_;
-
-    polynome( $t, 2451550.09766 + 29.530588861 * $k,
-        0.00015437, 1.5e-07, 7.3e-10 );
+sub _assemble_terms {
+    my ( $terms, $k, $t2, $t3, $t4 ) = @_;
+    $terms->[0] + $terms->[1] * $k + $terms->[2] * $t2 + $terms->[3] * $t3 +
+      $terms->[4] * $t4;
 }
 
 sub search_event {
     my ( $date, $quarter ) = @_;
 
-    my $q = $QUARTER{$quarter};
-    my $k = _mean_phase( $date, $q->{fraction} );
-    my $t = $k / 1236.85;
+    my $q  = $QUARTER{$quarter};
+    my $k  = _mean_phase( $date, $q->{fraction} );
+    my $t  = $k / 1236.85;
+    my $t2 = $t * $t;
+    my $t3 = $t2 * $t;
+    my $t4 = $t3 * $t;
 
     # JDE
-    my $j = _mean_jde( $k, $t );
-    my ( $E, $MS, $MM, $F, $N ) = _mean_orbit( $k, $t );
+    my $j = _assemble_terms(
+        [ 2451550.09766, 29.530588861, 0.00015437, 1.5e-07, 7.3e-10 ],
+        $k, $t2, $t3, $t4 );
+    my $E = polynome( $t, 1, -2.516e-3, -7.4e-06 );
+    my ( $MS, $MM, $F, $N ) = map { _assemble_terms( $_, $k, $t2, $t3, $t4 ) }
+      ( \@MANOM_SUN, \@MANOM_MOO, \@ARGLA_MOO, \@LONND_MOO );
     my $EE = $E * $E;
     my @A  = (
-        299.77 + 0.107408 * $k - 0.009173 * $t * $t,
+        299.77 + 0.107408 * $k - 0.009173 * $t2,
         map { polynome( $k, @$_ ) } @A_TERMS
     );
 
@@ -251,12 +248,8 @@ sub search_event {
           2e-05 * cos( $ms - $mm ) +
           2e-05 * cos( $ms + $mm ) +
           2e-05 * cos( $f + $f );
-        if ( $quarter eq $LAST_QUARTER ) {
-            $j -= $w;
-        }
-        else {
-            $j += $w;
-        }
+        $w = -$w if $quarter eq $LAST_QUARTER;
+        $j += $w;
     }
 
     $s = reduce {

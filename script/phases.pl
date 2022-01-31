@@ -72,7 +72,7 @@ my @quarters = ( { type => shift @month, jd => $j, current => 0 } );
 push @month, $NEW_MOON;
 
 for my $q (@month) {
-  my ( $y, $m, $d ) = jd2cal( $j + 7 );
+  my ( $y, $m, $d ) = jd2cal($j);
   $j = search_event( [ $y, $m, floor($d) ], $q );
   my $prev = $quarters[$#quarters];
   if ( $dt->jd >= $prev->{jd} && $dt->jd < $j ) {

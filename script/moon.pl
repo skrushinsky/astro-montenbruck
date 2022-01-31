@@ -49,31 +49,6 @@ sub jd2str {
     )->strftime( $arg{format} );
 }
 
-sub find_lunar_phase {
-    my $dt = shift;
-
-    # find New Moon closest to the date
-    my $j = search_event( [ $dt->year, $dt->month, $dt->day ], $NEW_MOON );
-
-    # if the event has not happened yet, find the previous one
-    if ( $j > $dt->jd ) {
-        my ( $y, $m, $d ) = jd2cal( $j - 28 );
-        $j = search_event( [ $y, $m, floor($d) ], $NEW_MOON );
-    }
-
-    my @month  = @MONTH;
-    my $last_q = shift @month;    # this shouls always be the New Moon
-    my $last_j = $j;              # Julian date of the last New Moon
-    while (@month) {
-        my $next_q = shift @month;
-        my ( $y, $m, $d ) = jd2cal $last_j;
-        my $next_j = search_event( [ $y, $m, floor($d) ], $next_q );
-        return $last_q if $dt->jd >= $last_j && $dt->jd < $next_j;
-        ( $last_q, $last_j ) = ( $next_q, $next_j );
-    }
-
-    croak 'Could not find lunar phase for date ' . $dt->strftime('%F %T');
-}
 
 my $now = local_now();
 
@@ -136,7 +111,6 @@ say sprintf( "Moon Rise: %s\nMoon Transit: %s\nMoon Set: %s",
     map { $report{$_} } @RS_EVENTS );
 say '';
 
-say sprintf( 'Lunar phase: %s', find_lunar_phase($dt) );
 
 __END__
 

@@ -16,11 +16,12 @@ Readonly our $FIRST_QUARTER => 'First Quarter';
 Readonly our $FULL_MOON     => 'Full Moon';
 Readonly our $LAST_QUARTER  => 'Last Quarter';
 
-Readonly::Array our @MONTH => ($NEW_MOON, $FIRST_QUARTER, $FULL_MOON, $LAST_QUARTER);
-Readonly our @QUARTERS => qw/$NEW_MOON $FIRST_QUARTER $FULL_MOON $LAST_QUARTER @MONTH/;
+Readonly::Array our @MONTH =>
+  ( $NEW_MOON, $FIRST_QUARTER, $FULL_MOON, $LAST_QUARTER );
+Readonly our @QUARTERS =>
+  qw/$NEW_MOON $FIRST_QUARTER $FULL_MOON $LAST_QUARTER @MONTH/;
 
 my @funcs = qw/mean_phase search_event/;
-
 
 our %EXPORT_TAGS = (
     quarters  => \@QUARTERS,
@@ -30,8 +31,6 @@ our %EXPORT_TAGS = (
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our $VERSION   = 0.03;
-
-
 
 Readonly::Array my @NEW_MOON_TERMS => (
     -0.40720, 0.17241,  0.01608,  0.01039,  0.00739,  -0.00514,
@@ -73,17 +72,22 @@ Readonly::Array my @A_TERMS => (
     [ 331.55, 3.592518 ]
 );
 
-
 Readonly::Array my @A_CORR => (
     0.000325, 0.000165, 0.000164, 0.000126, 0.000110, 0.000062,
     0.000060, 0.000056, 0.000047, 0.000042, 0.000040, 0.000037,
     0.000035, 0.000023
 );
 
-Readonly::Array my @MANOM_SUN => ( 2.5534, 29.1053567, -1.4e-06, -1.1e-07 ); # Sun's mean anomaly
-Readonly::Array my @MANOM_MOO => ( 201.5643, 385.81693528, 0.0107582, 1.238e-05, -5.8e-08 ); # Moon's mean anomaly
-Readonly::Array my @ARGLA_MOO => ( 160.7108, 390.67050284, -0.0016118, -2.27e-06, -1.1e-08 ); # Moon's argument of latitude
-Readonly::Array my @LONND_MOO => ( 124.7746, -1.56375588, 0.0020672, 2.15e-06 ); # Longitude of the ascending node)
+Readonly::Array my @MANOM_SUN => ( 2.5534, 29.1053567, -1.4e-06, -1.1e-07 )
+  ;    # Sun's mean anomaly
+Readonly::Array my @MANOM_MOO =>
+  ( 201.5643, 385.81693528, 0.0107582, 1.238e-05, -5.8e-08 )
+  ;    # Moon's mean anomaly
+Readonly::Array my @ARGLA_MOO =>
+  ( 160.7108, 390.67050284, -0.0016118, -2.27e-06, -1.1e-08 )
+  ;    # Moon's argument of latitude
+Readonly::Array my @LONND_MOO => ( 124.7746, -1.56375588, 0.0020672, 2.15e-06 )
+  ;    # Longitude of the ascending node)
 
 Readonly::Hash our %QUARTER => (
     $NEW_MOON => {
@@ -104,8 +108,6 @@ Readonly::Hash our %QUARTER => (
     },
 );
 
-
-
 sub _mean_phase {
     my ( $date, $fraction ) = @_;
 
@@ -115,27 +117,20 @@ sub _mean_phase {
 }
 
 sub _mean_orbit {
-    my ($k, $t) = @_;
+    my ( $k, $t ) = @_;
 
-    polynome( $t, 1, -2.516e-3, -7.4e-06 ),
-    map {
+    polynome( $t, 1, -2.516e-3, -7.4e-06 ), map {
         my @terms = @$_;
         reduce_deg(
-            polynome( $t, $terms[0] + $terms[1] * $k, @terms[ 2 .. $#terms ] )
-        )
-    } ( \@MANOM_SUN, \@MANOM_MOO, \@ARGLA_MOO, \@LONND_MOO )
+            polynome( $t, $terms[0] + $terms[1] * $k, @terms[ 2 .. $#terms ] ) )
+    } ( \@MANOM_SUN, \@MANOM_MOO, \@ARGLA_MOO, \@LONND_MOO );
 }
 
 sub _mean_jde {
-    my ($k, $t) = @_;
+    my ( $k, $t ) = @_;
 
-    polynome(
-        $t,
-        2451550.09766 + 29.530588861 * $k,
-        0.00015437,
-        1.5e-07,
-        7.3e-10
-    );
+    polynome( $t, 2451550.09766 + 29.530588861 * $k,
+        0.00015437, 1.5e-07, 7.3e-10 );
 }
 
 sub search_event {
@@ -143,15 +138,15 @@ sub search_event {
 
     my $q = $QUARTER{$quarter};
     my $k = _mean_phase( $date, $q->{fraction} );
-    my $t  = $k / 1236.85;
+    my $t = $k / 1236.85;
 
     # JDE
-    my $j = _mean_jde($k, $t);
-    my ( $E, $MS, $MM, $F, $N ) = _mean_orbit($k, $t);
+    my $j = _mean_jde( $k, $t );
+    my ( $E, $MS, $MM, $F, $N ) = _mean_orbit( $k, $t );
     my $EE = $E * $E;
     my @A  = (
         299.77 + 0.107408 * $k - 0.009173 * $t * $t,
-        map { polynome($k, @$_) } @A_TERMS
+        map { polynome( $k, @$_ ) } @A_TERMS
     );
 
     my $mm2 = $MM + $MM;
@@ -189,7 +184,7 @@ sub search_event {
                 $MM - $MS - $f2,
                 $mm3 + $MS,
                 $mm2 + $mm2
-              )
+            )
         }
         else {
             (
@@ -218,11 +213,11 @@ sub search_event {
                 $mm2 - $f2,
                 $MM - $MS + $f2,
                 $mm3 + $MS
-              )
+            )
         }
     };
 
-    my @rsi = map { sin( deg2rad($_) ) } @si;
+    my @rsi   = map  { sin( deg2rad($_) ) } @si;
     my @terms = grep { defined $_->[0] && defined $_->[1] }
       zip_unflatten( @{ $q->{terms} }, @rsi );
     my $s = 0;
@@ -251,12 +246,17 @@ sub search_event {
     if ( $quarter eq $FIRST_QUARTER || $quarter eq $LAST_QUARTER ) {
         my ( $mm, $ms, $f ) = map { deg2rad($_) } ( $MM, $MS, $F );
         my $w =
-          0.00306 - 0.00038 * cos($ms) +
+          0.00306 - 0.00038 * $E * cos($ms) +
           0.00026 * cos($mm) -
+          2e-05 * cos( $ms - $mm ) +
           2e-05 * cos( $ms + $mm ) +
           2e-05 * cos( $f + $f );
-        $w = -$w if $quarter eq $LAST_QUARTER;
-        $j += $w;
+        if ( $quarter eq $LAST_QUARTER ) {
+            $j -= $w;
+        }
+        else {
+            $j += $w;
+        }
     }
 
     $s = reduce {
@@ -264,17 +264,15 @@ sub search_event {
     }
     0, zip_unflatten( @A, @A_CORR );
     $j += $s;
-    wantarray ? ($j, $F) : $j
+    wantarray ? ( $j, $F ) : $j;
 }
-
 
 sub is_eclipse_possible {
     my $f = shift;
-    my $s = sin(deg2rad($f));
-    return 0 if abs $s > 0.36; # no eclipse
+    my $s = sin( deg2rad($f) );
+    return 0 if abs $s > 0.36;    # no eclipse
     1;
 }
-
 
 1;
 __END__

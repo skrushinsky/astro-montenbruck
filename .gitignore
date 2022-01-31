@@ -46,3 +46,4 @@ script/swisseph.pl
 *.yml
 .vscode
 .vstags
+.pls_cache/index

@@ -35,3 +35,6 @@ Revision history for AstroScript
              cross midnight and set time was missed. Documentation texts corrected, 
              thanks to Tom Browdy.  
 2021-05-08 - Sidereal time: result reduced to proper range
+2022-01-31 - Module for calculation time lunar phases rewritten in order to fix a 
+             serious bug. Now we use a simpler but more reliable algorithm from 
+             "Astronomy with Your PC" by Peter Duffett-Smith.

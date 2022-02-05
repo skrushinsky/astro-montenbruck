@@ -63,8 +63,16 @@ of the Sun, the Moon, and the planets amount to about 1″-3″."
 
 =back
 
-The project is also hosted on Github. Please, visit L<https://github.com/skrushinsky/astro-montenbruck>
 
+=head1 HOW TO CONTRIBUTE 
+
+The project is also hosted on Github. Please, visit L<https://github.com/skrushinsky/astro-montenbruck>.
+You may contribute to the project by many different ways, starting from refining and correcting its documentation,
+especially if you are a native English speaker, and ending with improving the code base. Any kind of testing and
+suggestions are welcome. 
+
+You may follow the standard Github procedures or, in case you are not comfortable with them, just send your suggestions 
+to the author by email.
 
 =head1 AUTHOR
 

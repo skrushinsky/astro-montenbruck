@@ -72,6 +72,7 @@ Documentation files will be installed to **docs/** directory.
 * **phases.pl** — lunar phases
 * **rst_almanac.pl** — rises/sets/transits events for a range of dates 
 * **solequ.pl** — solstices and equinoxes
+* **mercury.pl** — very simple demo of calculating Mercury position 
 * **moon_almanac.pl** — rises, sets of the Moon, its positions and lunar phase circumstances for a range of dates
 
 ### Example
@@ -88,10 +89,21 @@ For list of available options. type:
 $ perl script/planpos.pl --help
 ```
 
+Most of the scripts have `--help` option for a short list of options and `--man` for an extended description. 
+
+## How to contribute
+
+You may contribute to the project by many different ways, starting from refining and correcting its documentation,
+especially if you are a native English speaker, and ending with improving the code base. Any kind of testing and
+suggestions are welcome. 
+
+You may follow the standard Github procedures or, in case you are not comfortable with them, just send your suggestions 
+to the author by email.
+
 
 ## License And Copyright
 
-Copyright (C) 2010-2022Sergey Krushinsky
+Copyright (C) 2010-2022 Sergey Krushinsky
 
 This program is free software; you can redistribute it and/or modify it under the terms of the the Artistic License (1.0). You may obtain a copy of the full license at:
 

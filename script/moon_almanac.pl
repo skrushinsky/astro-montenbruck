@@ -90,53 +90,6 @@ sub sun_moon_positions {
 }
 
 
-sub moon_for_date {
-    my ($jd, $lat, $lon, $tz) = @_;
-    my ($ye, $mo, $da) = cal2jd($jd);
-    say sprintf( 'Date : %s', sprintf('%d-%02d-%02d', $ye, $mo, $da) );
-    say '';
-
-
-    # Convert Julian date to centuries since epoch 2000.0
-    # my $t = ( $jd - 2451545 ) / 36525;
-
-    # build top-level function for any event and any celestial object
-    # for given time and place
-    my $rst_func = rst(
-        date   => [ $ye, $mo, $da ],
-        phi    => $lat,
-        lambda => $lon
-    );
-    my %report;
-    $rst_func->(
-        $MO,
-        on_event => sub {
-            my ( $evt, $jd_evt ) = @_;
-            $report{$evt} = jd2str( $jd_evt, $tz, format => '%H:%M %Z' );
-        },
-        on_noevent => sub {
-            my ( $evt, $state ) = @_;
-            $report{$evt} = $state;
-        }
-    );
-    say sprintf( "Moon Rise: %s\nMoon Transit: %s\nMoon Set: %s",
-        map { $report{$_} } @RS_EVENTS );
-
-    say '';
-
-    my $t  = ($jd - 2451545) / 36525; # Convert Julian date to centuries since epoch 2000.0
-
-    my %lam;
-    find_positions($t, [$SU, $MO], sub {
-        my ($id, $lambda) = @_;
-        $lam{$id} = $lambda;
-        say sprintf('%s longitude: %6.2f', $id, $lambda);
-    });
-    my ($phase, $deg, $days) = moon_phase(moon => $lam{$MO}, sun => $lam{$SU});
-    say sprintf("Phase: %s\nAge: %5.2f deg. = %d days", $phase, $deg, $days);    
-}
-
-
 my $now = local_now();
 
 my $help  = 0;

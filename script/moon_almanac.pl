@@ -53,9 +53,6 @@ sub jd2str {
 
 sub rise_set_transit {
     my ($ye, $mo, $da, $lat, $lon, $tz) = @_;
-    # Convert Julian date to centuries since epoch 2000.0
-    # my $t = ( $jd - 2451545 ) / 36525;
-
     # build top-level function for any event and any celestial object
     # for given time and place
     my $rst_func = rst(

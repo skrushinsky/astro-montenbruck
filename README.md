@@ -1,5 +1,17 @@
 # Astro::Montenbruck
 
+- [Astro::Montenbruck](#astromontenbruck)
+  - [Overview](#overview)
+  - [Precision](#precision)
+  - [Contents](#contents)
+  - [Requirements](#requirements)
+  - [Installation](#installation)
+  - [Documentation](#documentation)
+  - [Scripts](#scripts)
+    - [Example](#example)
+  - [How to contribute](#how-to-contribute)
+  - [License And Copyright](#license-and-copyright)
+## Overview
 
 Library of astronomical calculations, based on _"Astronomy On The Personal Computer"_ by _O.Montenbruck_ and _T.Phleger_, _Fourth Edition, Springer-Verlag, 2000_.
 
@@ -98,16 +110,15 @@ especially if you are a native English speaker, and ending with improving the co
 suggestions are welcome. 
 
 You may follow the standard Github procedures or, in case you are not comfortable with them, just send your suggestions 
-to the author by email.
+to the author by email: `krushi at cpan.org`.
 
 
 ## License And Copyright
 
 Copyright (C) 2010-2022 Sergey Krushinsky
 
-This program is free software; you can redistribute it and/or modify it under the terms of the the Artistic License (1.0). You may obtain a copy of the full license at:
-
-https://dev.perl.org/licenses/artistic.html
+This program is free software; you can redistribute it and/or modify it under the terms of the the Artistic License (1.0). You may obtain
+[a copy of the full license here](https://dev.perl.org/licenses/artistic.html).
 
 Aggregation of this Package with a commercial distribution is always permitted provided that the use of this Package is embedded; that is, when no overt attempt is made to make this Package's interfaces visible to the end user of the commercial distribution. Such use shall not be construed as a distribution of this Package.
 

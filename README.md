@@ -72,6 +72,7 @@ Documentation files will be installed to **docs/** directory.
 * **phases.pl** — lunar phases
 * **rst_almanac.pl** — rises/sets/transits events for a range of dates 
 * **solequ.pl** — solstices and equinoxes
+* **moon_almanac.pl** — rises, sets of the Moon, its positions and lunar phase circumstances for a range of dates
 
 ### Example
 

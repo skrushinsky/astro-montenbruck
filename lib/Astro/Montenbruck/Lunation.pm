@@ -9,24 +9,27 @@ use Math::Trig qw/deg2rad rad2deg/;
 use POSIX qw /floor/;
 
 use Astro::Montenbruck::Time qw/cal2jd jd2cal $J1900/;
-use Astro::Montenbruck::MathUtils qw/reduce_deg/;
+use Astro::Montenbruck::MathUtils qw/reduce_deg diff_angle/;
 
 Readonly our $NEW_MOON      => 'New Moon';
 Readonly our $FIRST_QUARTER => 'First Quarter';
 Readonly our $FULL_MOON     => 'Full Moon';
 Readonly our $LAST_QUARTER  => 'Last Quarter';
+Readonly our $WAXING_CRESCENT => 'Waxing Crescent';
+Readonly our $WAXING_GIBBOUS => 'Waxing Gibbous';
+Readonly our $WANING_GIBBOUS => 'Waning Gibbous';
+Readonly our $WANING_CRESCENT => 'Waning Crescent';
 
-Readonly::Array our @MONTH =>
-    ( $NEW_MOON, $FIRST_QUARTER, $FULL_MOON, $LAST_QUARTER );
-Readonly our @QUARTERS =>
-    qw/$NEW_MOON $FIRST_QUARTER $FULL_MOON $LAST_QUARTER @MONTH/;
+Readonly our @PHASES =>  
+    qw/$NEW_MOON $WAXING_CRESCENT $FIRST_QUARTER $WAXING_GIBBOUS 
+       $FULL_MOON $WANING_GIBBOUS $LAST_QUARTER $WANING_CRESCENT/;
 
-my @funcs = qw/mean_phase search_event lunar_month/;
+my @funcs = qw/mean_phase search_event lunar_month moon_phase/;
 
 our %EXPORT_TAGS = (
-    quarters  => \@QUARTERS,
+    phases    => \@PHASES,
     functions => \@funcs,
-    all       => [ @QUARTERS, @funcs ]
+    all       => [ @PHASES, @funcs ]
 );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
@@ -128,26 +131,29 @@ sub search_event {
             fl_delta( $t1, $ms, $mm, $tms, $tmm, $tf ) + $w;
         }
     };
-    $j + $delta + $J1900;
+    $j += $delta + $J1900;
+    wantarray() ? ($j, rad2deg($f))
+                : $j
+
 }
 
-sub find_quarter {
+sub _find_quarter {
     my ( $q, $y, $m, $d ) = @_;
     my $j = search_event( [ $y, $m, floor($d) ], $q );
     { type => $q, jd => $j };
 }
 
-sub find_newmoon {
+sub _find_newmoon {
     my $ye  = shift;
     my $mo  = shift;
     my $da  = shift;
     my %arg = ( find_next => sub { }, step => 28, @_ );
 
     # find New Moon closest to the date
-    my $data = find_quarter( $NEW_MOON, $ye, $mo, $da );
+    my $data = _find_quarter( $NEW_MOON, $ye, $mo, $da );
     if ( $arg{find_next}->( $data->{jd} ) ) {
         my ( $y, $m, $d ) = jd2cal( $data->{jd} + $arg{step} );
-        return find_newmoon( $y, $m, $d, %arg );
+        return _find_newmoon( $y, $m, $d, %arg );
     }
     $data;
 }
@@ -155,30 +161,50 @@ sub find_newmoon {
 sub lunar_month {
     my $jd = shift;
     my ( $ye, $mo, $da ) = jd2cal($jd);
-    my $head = find_newmoon(
+    my $head = _find_newmoon(
         $ye, $mo, $da,
         find_next => sub { $_[0] > $jd },
         step      => -28
     );
-    my $tail = find_newmoon(
+    my $tail = _find_newmoon(
         $ye, $mo, $da,
         find_next => sub { $_[0] < $jd },
         step      => 28
     );
     my ( $y, $m, $d ) = jd2cal $head->{jd};
-    my @trunc = map { find_quarter( $_, $y, $m, $d ) }
+    my @trunc = map { _find_quarter( $_, $y, $m, $d ) }
         ( $FIRST_QUARTER, $FULL_MOON, $LAST_QUARTER );
 
-    my $idx = 0;
     my $pre;
     map {
         my $cur = $_;
+        $cur->{current} = 0;
         if ( defined $pre ) {
-            $pre->{current} = $jd >= $pre->{jd} && $jd < $cur->{jd};
+            $pre->{current} = $jd >= $pre->{jd} && $jd < $cur->{jd} ? 1 : 0; 
         }
         $pre = $cur;
     } ( $head, @trunc, $tail );
 }
+
+sub moon_phase {
+    my %arg = (sun => undef, moon => undef, @_);
+    my $d = reduce_deg(diff_angle($arg{sun}, $arg{moon})); # age in degrees
+    my $days = $d / 12.1907;
+    my $get_phase = sub {
+        return $NEW_MOON if $d >= 0 && $d < 45;
+        return $WAXING_CRESCENT if $d >= 45 && $d < 90;
+        return $FIRST_QUARTER if $d >= 90 && $d < 135;
+        return $WAXING_GIBBOUS if $d >= 135 && $d < 180;
+        return $FULL_MOON if $d >= 180 && $d < 225;
+        return $WANING_GIBBOUS if $d >= 225 && $d < 270;
+        return $LAST_QUARTER if $d >= 270 && $d < 315;
+        return $WANING_CRESCENT if $d >= 315 && $d < 360;
+    };
+    my $phase = $get_phase->();
+    return wantarray() ? ($phase, $d, $days) : $phase 
+}
+
+
 
 1;
 __END__
@@ -197,42 +223,46 @@ Astro::Montenbruck::Lunation - Lunar quarters.
   use Astro::Montenbruck::Lunation qw/:all/;
 
   # find instant of New Moon closest to 2019 Aug, 12
-  $jd = search_event([2019, 8, 12], $NEW_MOON)
+  $jd = search_event([2019, 8, 12], $NEW_MOON);
+  # returns 2458696.63397517
 
+  # find, which lunar phase corresponds to Moon longitude of 9.926
+  # and Sun longitude of 316.527
+  $phase = lunar_phase(moon => 9.926, sun => 316.527); 
+  # returns 'Waxing Crescent'
 
 =head1 DESCRIPTION
 
 Searches lunar quarters. Algorithms are based on
-I<"Astronomical Algorithms"> by I<Jean Meeus>, I<Second Edition>, I<Willmann-Bell, Inc., 1998>.
+I<"Astronomy with your PC"> by I<Peter Duffett-Smith>, I<Second Edition>, I<Cambridge University Press}, 1990>.
 
 
 =head1 EXPORT
 
 =head2 CONSTANTS
 
-=head3 QUARTERS
+=head3 PHASES
 
 =over
 
 =item * C<$NEW_MOON>
 
+=item * C<$WAXING_CRESCENT>
+
 =item * C<$FIRST_QUARTER>
+
+=item * C<$WAXING_GIBBOUS>
 
 =item * C<$FULL_MOON>
 
+=item * C<$WANING_GIBBOUS>
+
 =item * C<$LAST_QUARTER>
 
-=back
-
-=head3 MONTH
-
-=over
-
-=item * C<@MONTH> 
+=item * C<$WANING_CRESCENT>
 
 =back
 
-Array of L<QUARTERS> in proper order.
 
 
 =head1 SUBROUTINES
@@ -249,7 +279,7 @@ Calculate instant of apparent lunar phase closest to the given date.
 and B<day>, [1..31].
 
 =item * B<quarter> — which quarter, one of: C<$NEW_MOON>, C<$FIRST_QUARTER>,
-C<$FULL_MOON> or C<$LAST_QUARTER> see L</QUARTERS>.
+C<$FULL_MOON> or C<$LAST_QUARTER>.
 
 =back
 
@@ -267,6 +297,126 @@ In list context:
 
 =back
 
+=head2 lunar_month($jd)
+
+Find lunar quarters around the given date
+
+=head3 Arguments
+
+=over
+
+=item * B<jd> — Standard Julian date
+
+=head3 Returns
+
+Array of 5 hashes, each hash representing a successive lunar quarter. Their order is always the same:
+
+=over
+
+=item 1. 
+
+B<New Moon>
+
+=item 2. 
+
+B<First Quarter>
+
+=item 3. 
+
+B<Full Moon>
+
+=item 4. 
+
+B<Last Quarter>
+
+=back
+
+=item 4. 
+
+B<The next New Moon>
+
+=back
+
+
+Each hash contains 3 elements:
+
+=over
+
+=item * B<type>
+
+One of the constants representing the main Quarter: C<$NEW_MOON>, C<$FIRST_QUARTER>, C<$FULL_MOON>, C<$LAST_QUARTER>.
+
+=item * B<jd>
+
+Standard Julian Date of the event,
+
+=item * B<current>
+
+I<True> if the the given date lies within the quarter.
+
+=back
+
+=head4 Example
+
+    lunar_month(2459614.5) gives: 
+
+    (
+        {
+            type => 'New Moon',
+            jd => 2459611.74248269, # time when the quarter starts
+            current => 1 # since 2459611.74248269 < 2459614.5 < 2459619.07819525, our date belongs to New Moon phase.
+        },
+        {
+            type => 'First Quarter',
+            current => 0,
+            jd => 2459619.07819525
+        },
+        {
+            type => 'Full Moon',
+            current => 0,
+            jd => 2459627.20811964
+        },
+        {
+            current => 0,
+            jd => 2459634.44073709'
+            type => 'Last Quarter'
+        },
+        {
+            current => 0,
+            type => 'New Moon',
+            jd => 2459641.23491532
+        }
+    );
+
+
+=head2 lunar_phase(sun => $decimal, moon => $decimal)
+
+Given Sun and Moon longitudes, detects a lunar phase. 
+
+=head3 Named Arguments
+
+=over
+
+=item * B<sun> — longitude of the Sun, in arc-degrees
+
+=item * B<moon> — longitude of the Moon, in arc-degrees
+=back
+
+=head3 Returns
+
+In scalar context the phase name, one of the L<PHASES>.
+
+In list context:
+
+=over
+
+=item * name of the phase.
+
+=item * Moon age in arc-degrees
+
+=item * Moon age in days
+
+=back
 
 
 =head1 AUTHOR

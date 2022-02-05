@@ -57,11 +57,11 @@ $theme->print_data( 'Time Zone', $tzone,              title_width => 14 );
 say '';
 
 my $ut          = $dt->clone->set_time_zone('UTC');
-my @lunar_month = lunar_month( cal2jd( $ut->year, $ut->month, $ut->day ) );
+my $jd = cal2jd( $ut->year, $ut->month, $ut->day );
+my @lunar_month = lunar_month( $jd );
 for my $q (@lunar_month) {
     my $dt
-        = DateTime->from_epoch( epoch => jd2unix( $q->{jd} ) )
-        ->set_time_zone($tzone);
+        = DateTime->from_epoch( epoch => jd2unix( $q->{jd} ) )->set_time_zone($tzone);
     my $mark = $q->{current} ? '*' : ' ';
     my $data = sprintf( '%s %s', $dt->strftime('%F %T'), $mark );
     $theme->print_data(

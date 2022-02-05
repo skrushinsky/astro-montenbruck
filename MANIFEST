@@ -40,6 +40,8 @@ META.yml
 README
 README.md
 script/createdocs.pl
+script/mercury.pl
+script/moon_almanac.pl
 script/phases.pl
 script/planpos.pl
 script/riseset.pl

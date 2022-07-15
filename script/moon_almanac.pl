@@ -11,6 +11,7 @@ binmode( STDOUT, ":encoding(UTF-8)" );
 our $VERSION = 0.01;
 
 use Getopt::Long qw/GetOptions/;
+use Pod::Usage qw/pod2usage/;
 use POSIX qw/strftime floor/;
 use Carp qw/croak/;
 use DateTime;
@@ -65,7 +66,7 @@ sub rise_set_transit {
         $MO,
         on_event => sub {
             my ( $evt, $jd_evt ) = @_;
-            $report{$evt} = jd2str( $jd_evt, $tz, format => '%H:%M %Z' );
+            $report{$evt} = jd2str( $jd_evt, $tz, format => '%F %H:%M %Z' );
         },
         on_noevent => sub {
             my ( $evt, $state ) = @_;
@@ -109,6 +110,10 @@ GetOptions(
     'place:s{2}' => \@place,
 ) or pod2usage(2);
 
+pod2usage(1)               if $help;
+pod2usage( -verbose => 2 ) if $man;
+
+
 my $tz = DateTime::TimeZone->new( name => $tzone );
 my $dt = parse_date( $start, $tzone );
 @place = @DEFAULT_PLACE unless @place;
@@ -130,7 +135,7 @@ my $jd_end = $jd_start + $days * $step;
 
 for (my $jd = $jd_start; $jd < $jd_end; $jd+=$step) {
     my @date = jd2cal($jd);
-    say sprintf( 'Date : %s', sprintf('%d-%02d-%02d', @date) );
+    say sprintf( 'Date: %s', sprintf('%d-%02d-%02d UTC', @date) );
     say '';
 
     my %rst = rise_set_transit(@date, $lat, $lon, $tz);
@@ -144,7 +149,7 @@ for (my $jd = $jd_start; $jd < $jd_end; $jd+=$step) {
 
     my ($phase, $deg, $days) = moon_phase(moon => $mo, sun => $su);
     say sprintf("Phase: %s\nAge: %5.2f deg. = %d days", $phase, $deg, $days);  
-    say "\n---\n" 
+    say "\n---\n" ;
 }
 
 
@@ -187,20 +192,22 @@ Step between successive cevents, in days, B<7> by default
 
 =item B<--timezone>
 
-Time zone name, e.g.: C<EST>, C<UTC>, C<Europe/Berlin> etc. 
-or I<offset from Greenwich> in format B<+HHMM> / B<-HHMM>, like C<+0300>.
+I<Time zone name> (e.g. C<Europe/Berlin>, C<Australia/Sydney>); 
+or I<offset from Greenwich> in format B<+HHMM> / B<-HHMM> (e.g., C<+0300>); or possibly I<time zone abbreviation> (e.g. C<CET>).
 
+Defaults to local timezone as reported by your operating system if omitted.
+
+    --timezone=+0300 # UTC + 3h (eastward from Greenwich)
+    --timezone="Europe/Moscow"
+    --timezone=-0500 # UTC - 5h (westward from Greenwich)
+    --timezone="America/Chicago"
     --timezone=CET # Central European Time
     --timezone=EST # Eastern Standard Time
     --timezone=UTC # Universal Coordinated Time
     --timezone=GMT # Greenwich Mean Time, same as the UTC
-    --timezone=+0300 # UTC + 3h (eastward from Greenwich)
-    --timezone="Europe/Moscow"
 
-By default, a local timezone.
-
-Please, note: Windows platform may not recognize some time zone names, like C<MSK>.
-In such cases use I<offset from Greenwich> format, as described above.
+Use of either the I<time zone name> or I<offset from Greenwich> format is encouraged, as the I<time zone abbreviation> format is not considered definitive by the DateTime module and some abbreviations may not be recognized as valid (e.g., C<MSK>, C<EDT>, C<CST>).
+For a list of supported time zone names and offsets, see L<https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>.
 
 
 =item B<--place>
@@ -231,7 +238,8 @@ The latitude always goes first
 
 =item * 
 
-Negative numbers represent I<South> latitude and I<East> longitudes. 
+Negative numbers represent I<South> latitude and I<East> longitudes. B<Note>: in some online mapping applications (e.g., google), I<West> longitudes are considered negative (following ISO 6709), so be aware of that difference when looking up coordinates with those applications.
+
 
 =back
 

@@ -88,7 +88,7 @@ my $jd_end = $jd_start + $days;
 
 for (my $jd = $jd_start; $jd < $jd_end; $jd++) { 
     my @date = jd2cal($jd);
-    say jd2str($jd, $tz);
+    say jd2str($jd, $tz, format => '%F %Z');
     
     my $rst_func = rst(
         date     => \@date,
@@ -102,7 +102,7 @@ for (my $jd = $jd_start; $jd < $jd_end; $jd++) {
             $pla,
             on_event   => sub {
                 my ($evt, $jd_evt) = @_;
-                $report{$evt} = jd2str($jd_evt, $tz, format => '%H:%M')
+                $report{$evt} = jd2str($jd_evt, $tz, format => '%m-%d %H:%M')
             },
             on_noevent => sub {
                 my ($evt, $state) = @_;
@@ -155,20 +155,22 @@ Number of days to process, B<30> by default
 
 =item B<--timezone>
 
-Time zone name, e.g.: C<EST>, C<UTC>, C<Europe/Berlin> etc. 
-or I<offset from Greenwich> in format B<+HHMM> / B<-HHMM>, like C<+0300>.
+I<Time zone name> (e.g. C<Europe/Berlin>, C<Australia/Sydney>); 
+or I<offset from Greenwich> in format B<+HHMM> / B<-HHMM> (e.g., C<+0300>); or possibly I<time zone abbreviation> (e.g. C<CET>).
 
+Defaults to local timezone as reported by your operating system if omitted.
+
+    --timezone=+0300 # UTC + 3h (eastward from Greenwich)
+    --timezone="Europe/Moscow"
+    --timezone=-0500 # UTC - 5h (westward from Greenwich)
+    --timezone="America/Chicago"
     --timezone=CET # Central European Time
     --timezone=EST # Eastern Standard Time
     --timezone=UTC # Universal Coordinated Time
     --timezone=GMT # Greenwich Mean Time, same as the UTC
-    --timezone=+0300 # UTC + 3h (eastward from Greenwich)
-    --timezone="Europe/Moscow"
 
-By default, local timezone by default.
-
-Please, note: Windows platform does not recognize some time zone names, C<MSK> for instance.
-In such cases use I<offset from Greenwich> format, as described above.
+Use of either the I<time zone name> or I<offset from Greenwich> format is encouraged, as the I<time zone abbreviation> format is not considered definitive by the DateTime module and some abbreviations may not be recognized as valid (e.g., C<MSK>, C<EDT>, C<CST>).
+For a list of supported time zone names and offsets, see L<https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>.
 
 
 =item B<--place>
@@ -199,7 +201,7 @@ The latitude always goes first
 
 =item * 
 
-Negative numbers represent I<South> latitude and I<East> longitudes. 
+Negative numbers represent I<South> latitude and I<East> longitudes.  B<Note>: in some online mapping applications (e.g., google), I<West> longitudes are considered negative (following ISO 6709), so be aware of that difference when looking up coordinates with those applications.
 
 =back
 

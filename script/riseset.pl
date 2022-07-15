@@ -24,7 +24,7 @@ use Astro::Montenbruck::Utils::Helpers
 use Astro::Montenbruck::Utils::Theme;
 
 binmode( STDOUT, ":encoding(UTF-8)" );
-
+ 
 sub print_rst_row {
     my ( $obj, $res, $tzone, $theme ) = @_;
     my $sch = $theme->scheme;
@@ -35,7 +35,7 @@ sub print_rst_row {
         if ( $evt->{ok} ) {
             my $dt = DateTime->from_epoch( epoch => jd2unix( $evt->{jd} ) )
               ->set_time_zone($tzone);
-            print $theme->decorate( $dt->strftime('%T'),
+            print $theme->decorate( $dt->strftime('%F %T'),
                 $sch->{table_row_data} );
         }
         else {
@@ -54,7 +54,7 @@ sub print_twilight_row {
     if ( exists $res->{$evt} ) {
         my $dt = DateTime->from_epoch( epoch => jd2unix( $res->{$evt} ) )
           ->set_time_zone($tzone);
-        $theme->print_data( $TWILIGHT_TITLE{$evt}, $dt->strftime('%T'),
+        $theme->print_data( $TWILIGHT_TITLE{$evt}, $dt->strftime('%F %T'),
             title_width => 7 );
     }
     else {
@@ -98,7 +98,8 @@ my $scheme = $theme->scheme;
 
 my $local = parse_datetime($date);
 $local->set_time_zone($tzone) if defined($tzone);
-$theme->print_data( 'Date', $local->strftime('%F %Z'), title_width => 10 );
+$theme->print_data( 'Date', $local->strftime('%F'), title_width => 10 );
+
 my $utc =
     $local->time_zone ne 'UTC'
   ? $local->clone->set_time_zone('UTC')
@@ -118,8 +119,10 @@ $theme->print_data( 'Place',     format_geo( $lat, $lon ), title_width => 10 );
 $theme->print_data( 'Time Zone', $tzone,                   title_width => 10 );
 
 print "\n";
-say $theme->decorate( "        rise       transit    set     ",
-    $scheme->{table_row_title} );
+say $theme->decorate( 'Times local to above time zone:', 
+      $scheme->{table_row_title} );
+say $theme->decorate( ' 'x8 . 'rise' . ' 'x18 . 'transit' . ' 'x15 . 'set',
+      $scheme->{table_row_title} );
 
 # build top-level function for any event and any celestial object
 # for given time and place
@@ -171,28 +174,30 @@ Prints the manual page and exits.
 
 =item B<--date>
 
-Calendar date in format C<YYYY-MM-DD>, e.g.:
+Calendar date (local to timezone) in format C<YYYY-MM-DD>, e.g.:
 
   --date=2019-06-08
 
-Current date in default local time zone If omitted.
+Current date in default local time zone if omitted.
 
 =item B<--timezone>
 
-Time zone name, e.g.: C<EST>, C<UTC>, C<Europe/Berlin> etc. 
-or I<offset from Greenwich> in format B<+HHMM> / B<-HHMM>, like C<+0300>.
+I<Time zone name> (e.g. C<Europe/Berlin>, C<Australia/Sydney>); 
+or I<offset from Greenwich> in format B<+HHMM> / B<-HHMM> (e.g., C<+0300>); or possibly I<time zone abbreviation> (e.g. C<CET>).
 
+Defaults to local timezone as reported by your operating system if omitted.
+
+    --timezone=+0300 # UTC + 3h (eastward from Greenwich)
+    --timezone="Europe/Moscow"
+    --timezone=-0500 # UTC - 5h (westward from Greenwich)
+    --timezone="America/Chicago"
     --timezone=CET # Central European Time
     --timezone=EST # Eastern Standard Time
     --timezone=UTC # Universal Coordinated Time
     --timezone=GMT # Greenwich Mean Time, same as the UTC
-    --timezone=+0300 # UTC + 3h (eastward from Greenwich)
-    --timezone="Europe/Moscow"
 
-By default, local timezone by default.
-
-Please, note: Windows platform does not recognize some time zone names, C<MSK> for instance.
-In such cases use I<offset from Greenwich> format, as described above.
+Use of either the I<time zone name> or I<offset from Greenwich> format is encouraged, as the I<time zone abbreviation> format is not considered definitive by the DateTime module and some abbreviations may not be recognized as valid (e.g., C<MSK>, C<EDT>, C<CST>).
+For a list of supported time zone names and offsets, see L<https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>.
 
 
 =item B<--place>
@@ -223,7 +228,7 @@ The latitude always goes first
 
 =item * 
 
-Negative numbers represent I<South> latitude and I<East> longitudes. 
+Negative numbers represent I<South> latitude and I<East> longitudes. B<Note>: in some online mapping applications (e.g., google), I<West> longitudes are considered negative (following ISO 6709), so be aware of that difference when looking up coordinates with those applications.
 
 =back
 
@@ -278,8 +283,8 @@ Calculate rise, set and transit times of Sun, Moon and the
 planets. The program also calculates twilight, nautical by default. To calculate
 civil or astronomical twilight, use C<--twilight> option.
 
-All times are given in the same time zone which was provided by C<--time> option,
-or the default system time zone.
+All times are given in the same time zone which was provided by C<--timezone> option,
+or the default system time zone if not provided.  
 
 There are some conditions when an event can not be calculated. For instance,
 when celestial body is I<circumpolar> or I<never rises>. In such cases there is

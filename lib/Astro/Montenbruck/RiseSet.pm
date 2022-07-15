@@ -358,7 +358,7 @@ L<Astro::Montenbruck::RiseSet::Plarise/rst> .
 
 =item * 
 
-B<date> - array of B<year> (astronomical, zero-based), B<month> [1..12] and B<day>, [1..31].
+B<date> - array of B<year> (astronomical, zero-based), B<month> [1..12] and B<day>, [1..31], in UTC.
 
 =item * 
 
@@ -484,7 +484,7 @@ or C<$TWILIGHT_CIVIL>, see L<Astro::Montenbruck::RiseSet::Constants/TYPES OF TWI
 
 =item * 
 
-B<date> - array of B<year> (astronomical, zero-based), B<month> [1..12] and B<day>, [1..31].
+B<date> - array of B<year> (astronomical, zero-based), B<month> [1..12] and B<day>, [1..31], in UTC.
 
 =item * 
 

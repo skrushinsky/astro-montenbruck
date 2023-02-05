@@ -2,7 +2,7 @@ use 5.22.0;
 use Module::Build;
 
 my $builder = Module::Build->new(
-    module_name         => 'Astro-Montenbruck',
+    module_name         => 'Astro::Montenbruck',
     license             => 'artistic_1',
     dist_author         => q{Sergey Krushinsky <krushi at cpan.org>},
     dist_version_from   => 'lib/Astro/Montenbruck.pm',
@@ -28,6 +28,7 @@ my $builder = Module::Build->new(
         'List::MoreUtils'  => '0.43',
         'Test::Number::Delta' => '1.06',        
     },
+    script_files          => [ glob('script/*') ],
     add_to_cleanup        => [ 'Astro-*' ],
 );
 
